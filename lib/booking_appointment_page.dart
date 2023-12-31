@@ -22,15 +22,6 @@ class _BookingPageState extends State<BookingPage> {
   late final int userId;
   _BookingPageState({required this.userId});
 
-  /*Appointment newAppointment = Appointment(
-      appointmentId: 0, dateSelect, bookingTime: timeSelect,
-      status: "Pending", serviceType: _selectedServiceType,
-      patient: Patient(1, "", "", "", "", "", "", 0.0, 0.0),
-      room: Room(null, number)
-  );*/
-
-
-
   CalendarFormat _format = CalendarFormat.month;
   DateTime _focusDay = DateTime.now();
   DateTime _currentDay = DateTime.now();
@@ -64,7 +55,7 @@ class _BookingPageState extends State<BookingPage> {
   late List<Appointment> specificAppointment = [];
   Future<void> validateAppointment(String date, String time) async {
     final response = await http.get(
-        Uri.parse('http://10.0.3.2:8080/pkums/appointment/$date/$time'));
+        Uri.parse('http://192.168.110.196:8080/pkums/appointment/$date/$time'));
     try {
       print(response.statusCode);
       print(response.body);
@@ -103,10 +94,9 @@ class _BookingPageState extends State<BookingPage> {
    * Method implementation for add appointment slot
    * only if the current slot available is less than or equal to 3
    */
-
   Future<void> insertAppointment(String bookingDate, String bookingTime,
       String status, String serviceType, int patient, int room) async {
-    final Uri uri = Uri.parse('http://10.0.3.2:8080/pkums/appointment/insertappointment');
+    final Uri uri = Uri.parse('http://192.168.0.10:8080/pkums/appointment/insertappointment');
 
     try {
       final response = await http.post(

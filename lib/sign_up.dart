@@ -16,7 +16,7 @@ class SignupPage extends StatelessWidget {
   TextEditingController weightEdittingController = TextEditingController();
   TextEditingController genderEdittingController = TextEditingController();
 
-  String url = "http://10.0.3.2:8080/pkums/patient/signup";
+  String url = "http://192.168.0.10:8080/pkums/patient/signup";
 
   Patient patient = Patient(0, "", "", "", "", "", "", 0.0, 0.0);
 
@@ -37,21 +37,42 @@ class SignupPage extends StatelessWidget {
         )
     );
 
-    if(response.body != null){
+    if(emailEdittingController.text.endsWith('@student.utem.edu.my')){
+      try{
+        if(response.body != null){
 
+          Fluttertoast.showToast(
+            msg: "Successful registered! You will be redirected to login",
+            backgroundColor: Colors.white,
+            textColor: Colors.red,
+            toastLength: Toast.LENGTH_LONG,
+            fontSize: 16.0,
+          );
+
+          /*Future.delayed(Duration(seconds: 5), () {
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => Login()),
+        );
+      });*/
+        }
+      }catch(e){
+        print("Error: $e");
+        Fluttertoast.showToast(
+          msg: "An error occurred. Please try again later.",
+          backgroundColor: Colors.white,
+          textColor: Colors.red,
+          toastLength: Toast.LENGTH_LONG,
+          fontSize: 16.0,
+        );
+      }
+    }else{
       Fluttertoast.showToast(
-        msg: "Successful registered! You will be redirected to login",
+        msg: "Invalid email",
         backgroundColor: Colors.white,
         textColor: Colors.red,
         toastLength: Toast.LENGTH_LONG,
         fontSize: 16.0,
       );
-
-      /*Future.delayed(Duration(seconds: 5), () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => Login()),
-        );
-      });*/
     }
 
   }
@@ -167,7 +188,6 @@ class SignupPage extends StatelessWidget {
                         backgroundColor: MaterialStateProperty.all(Colors.deepPurple[100]),
                       ),
                       onPressed: () {
-                        register();
                       }, child: const Text("Register")),
                 ],
               ),

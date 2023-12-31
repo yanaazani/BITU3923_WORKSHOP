@@ -9,13 +9,11 @@ class MenuPage extends StatefulWidget {
   const MenuPage({Key? key, required this.userId}) : super(key: key);
 
   @override
-  State<MenuPage> createState() => _MenuPageState(userId: userId);
+  State<MenuPage> createState() => _MenuPageState();
 }
 
 
 class _MenuPageState extends State<MenuPage> {
-  late final int userId;
-  _MenuPageState({required this.userId});
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +36,7 @@ class _MenuPageState extends State<MenuPage> {
               ),)
           ],
         ),
-        body: MyGridView(userId: userId),
+        body: MyGridView(userId: widget.userId),
       ),
     );
 
@@ -46,11 +44,17 @@ class _MenuPageState extends State<MenuPage> {
 }
 
 
-class MyGridView extends StatelessWidget {
+class MyGridView extends StatefulWidget {
   final int userId; // Assuming userId is of type int
-  const MyGridView({Key? key, required this.userId}) : super(key: key);
+  const MyGridView({super.key, required this.userId});
 
+  @override
+  State<MyGridView> createState() => _MyGridViewState();
+}
+
+class _MyGridViewState extends State<MyGridView> {
   get onPressed => null;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -70,7 +74,7 @@ class MyGridView extends StatelessWidget {
                 const Text("Appointment", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold,),),
                 IconButton.filledTonal(icon: const Icon(Icons.local_hospital), iconSize: 50,
                   onPressed: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=>BookingPage(userId: userId)),);
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=>BookingPage(userId: widget.userId)),);
                   },),
               ],
             ),
@@ -79,11 +83,11 @@ class MyGridView extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                const Text("Date", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold,),),
+                const Text("Schedule", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold,),),
                 IconButton.filledTonal(
                     iconSize: 50,
                     onPressed: (){
-                      Navigator.push(context, MaterialPageRoute(builder: (context)=>const ScheduleAppointmentPage()),);
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=> ScheduleAppointmentPage(userId: widget.userId,)),);
                     },
                     icon: const Icon(Icons.calendar_month)),
               ],
@@ -114,7 +118,7 @@ class MyGridView extends StatelessWidget {
                 IconButton.filledTonal(
                     iconSize: 50 ,
                     onPressed: (){
-                      Navigator.push(context, MaterialPageRoute(builder: (context)=> ProfilePage(userId: userId)),);
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=> ProfilePage(userId: widget.userId)),);
                     },
                     icon: const Icon(Icons.people)),
               ],

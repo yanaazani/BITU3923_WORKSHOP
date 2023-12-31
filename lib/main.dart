@@ -38,9 +38,9 @@ class HomePage extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Image.asset("assets/main.png", fit: BoxFit.cover,),
+                child: Image.asset("assets/pku.png", fit: BoxFit.cover,),
               ),
-              SizedBox(height: 20,width: 50.0,),
+              const SizedBox(height: 20,width: 50.0,),
               TextButton(
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.black,
@@ -53,7 +53,7 @@ class HomePage extends StatelessWidget {
                 },
                 child: const Text('Log In'),
               ),
-              //SizedBox(height: 20,width: 50.0,),
+              const SizedBox(height: 20,width: 50.0,),
               TextButton(
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.black,

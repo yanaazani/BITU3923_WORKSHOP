@@ -49,7 +49,8 @@ class _LoginState extends State<Login> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
-  String url = "http://10.0.3.2:8080/pkums/patient/login";
+  String url = "http://192.168.0.10:8080/pkums/patient/login";
+  //String url = "http://10.0.3.2:8080/pkums/patient/login";
 
   Patient patient = Patient("", "");
 
@@ -64,25 +65,38 @@ class _LoginState extends State<Login> {
         )
     );
 
-    if(response.statusCode == 200 ){
-      Map<String, dynamic> responseData = json.decode(response.body);
-      int userId = responseData["id"] as int;
-      String userName = responseData["name"] as String;
-      print("This is username: $userName");
-      print("This is user id: $userId");
+    if(emailController.text.endsWith('@student.utem.edu.my')){
+      try{
+        if(response.statusCode == 200 ){
+          Map<String, dynamic> responseData = json.decode(response.body);
+          int userId = responseData["id"] as int;
+          String userName = responseData["name"] as String;
+          print("This is username: $userName");
+          print("This is user id: $userId");
 
-      Fluttertoast.showToast(
-        msg: "Successful login!",
-        backgroundColor: Colors.white,
-        textColor: Colors.red,
-        toastLength: Toast.LENGTH_LONG,
-        fontSize: 16.0,
-      );
-      Future.delayed(Duration(seconds: 2), () {
-        Navigator.push(context, MaterialPageRoute(builder: (context)=>MenuPage(userId: userId)),
+          Fluttertoast.showToast(
+            msg: "Successful login!",
+            backgroundColor: Colors.white,
+            textColor: Colors.red,
+            toastLength: Toast.LENGTH_LONG,
+            fontSize: 16.0,
+          );
+          Future.delayed(Duration(seconds: 2), () {
+            Navigator.push(context, MaterialPageRoute(builder: (context)=>MenuPage(userId: userId)),
+            );
+          });
+
+        }
+      }catch(e){
+        print("Error: $e");
+        Fluttertoast.showToast(
+          msg: "An error occurred. Please try again later.",
+          backgroundColor: Colors.white,
+          textColor: Colors.red,
+          toastLength: Toast.LENGTH_LONG,
+          fontSize: 16.0,
         );
-      });
-
+      }
     }else {
       Fluttertoast.showToast(
         msg: "Invalid email or password.",
@@ -92,7 +106,6 @@ class _LoginState extends State<Login> {
         fontSize: 16.0,
       );
     }
-
   }
 
   @override
@@ -195,4 +208,3 @@ class _LoginState extends State<Login> {
     );
   }
 }
-

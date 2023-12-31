@@ -79,7 +79,8 @@ class _RegisterPageState extends State<RegisterPage> {
   TextEditingController weightEdittingController = TextEditingController();
   TextEditingController genderEdittingController = TextEditingController();
 
-  String url = "http://10.0.3.2:8080/pkums/patient/signup";
+  //String url = "http://10.0.3.2:8080/pkums/patient/signup";
+  String url = "http://192.168.0.10:8080/pkums/patient/signup";
 
   Patient patient = Patient(0, "", "", "", "", "", "", 0.0, 0.0);
 
