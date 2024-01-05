@@ -37,6 +37,8 @@ dependencies:
   cupertino_icons: ^1.0.2
   shared_preferences: ^2.2.2
   image_picker: ^1.0.5
+  introduction_screen: ^3.1.12
+  fancy_containers: ^0.0.4
 
   # for web service / connection using database
   http: ^1.1.0
@@ -73,7 +75,17 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/
-  #   - images/a_dot_ham.jpeg
+    - assets/test3.jpg
+    - assets/test2.jpg
+    - assets/asaprokok.jpg
+    - assets/asaprokok.jpg
+    - assets/segeralakukancovidtest.jpg
+    - assets/putusrangkaiancovid.jpg
+    - assets/pelitupmuka.jpg
+    - assets/pencegahanmusimbanjir.jpg
+    - assets/tindakanselepabanjir.jpg
+    - assets/eatwell.jpg
+    - assets/musimpanas.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

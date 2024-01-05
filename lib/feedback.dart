@@ -1,25 +1,34 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:lottie/lottie.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
+import 'menu_page.dart';
+
 class FeedbackPage extends StatefulWidget {
-  const FeedbackPage({super.key});
+  final int userId;
+  const FeedbackPage({Key? key, required this.userId}) : super(key: key);
 
   @override
-  State<FeedbackPage> createState() => _FeedbackPageState();
+  State<FeedbackPage> createState() => _FeedbackPageState(userId: userId);
 }
 
 class _FeedbackPageState extends State<FeedbackPage> {
+   late final int userId;
+  _FeedbackPageState({required this.userId});
+
+  TextEditingController _commentController = TextEditingController();
+  double rating = 0.0; // Declare the rating variable
 
   //String imageUrl = "assets/profilepic.png";
   late Uint8List? _images = Uint8List(0); // Default image URL
-
-
   ImagePicker picker = ImagePicker();
   File? _image;
 
@@ -32,6 +41,51 @@ class _FeedbackPageState extends State<FeedbackPage> {
       setState(() {
         _image = File(pickedFile.path);
       });
+    }
+  }
+
+  String url = "http://192.168.0.10:8080/pkums/feedback/add";
+  Future<void> insertFeedback(double loginTroubleRating, double repairQualityRating,
+      double  efficiencyRating,double personalProfileRating,
+      String comment, int patient) async{
+
+    final Uri uri = Uri.parse('http://192.168.0.10:8080/pkums/feedback/add');
+    try{
+      final response = await http.post(
+          uri,
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: json.encode(
+              {
+                "loginTroubleRating": loginTroubleRating,
+                "repairQualityRating": repairQualityRating,
+                "efficiencyRating": efficiencyRating,
+                "personalProfileRating": personalProfileRating,
+                "comment": comment,
+                "patientId": {
+                  "id": patient
+                }
+              }
+          )
+      );
+      if(response.statusCode == 200){
+        Fluttertoast.showToast(
+          msg: "Thank you for your feedback!",
+          backgroundColor: Colors.white,
+          textColor: Colors.red,
+          toastLength: Toast.LENGTH_LONG,
+          fontSize: 16.0,
+        );
+        Future.delayed(Duration(seconds: 2), () {
+          Navigator.push(context, MaterialPageRoute(builder: (context)=>MenuPage(userId: userId)),
+          );
+        });
+      } else {
+        throw Exception('Failed to add feedback');
+      }
+    } catch (e) {
+      print('Error: $e');
     }
   }
 
@@ -151,6 +205,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
                 child: Stack(
                   children: [
                     TextField(
+                      controller: _commentController,
                       maxLines: 10,
                       decoration: InputDecoration(
                         hintText: "Tell us on how can we improve...",
@@ -221,7 +276,20 @@ class _FeedbackPageState extends State<FeedbackPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     ElevatedButton(
-                      onPressed: (){},
+                      onPressed: () async {
+                        // Retrieve ratings from the RatingBar widget
+                        double loginTroubleRating = getRating("Login Trouble", rating);
+                        double repairQualityRating = getRating("Repair Quality", rating);
+                        double efficiencyRating = getRating("Efficiency", rating);
+                        double personalProfileRating = getRating("Personal Profile", rating);
+                        // Retrieve comment from the text field
+                        String comment = _commentController.text;
+
+                        // Call the function to insert feedback
+                        await insertFeedback(loginTroubleRating, repairQualityRating,
+                          efficiencyRating, personalProfileRating, comment,
+                          userId,);
+                      },
                       child:
                       const Text("Submit",
                           style: TextStyle(
@@ -243,6 +311,28 @@ class _FeedbackPageState extends State<FeedbackPage> {
       ),
     );
   }
+
+  double getRating(String category, double rating) {
+    switch (category) {
+      case "Login Trouble":
+      // Logic for handling "Login Trouble" rating
+        return rating;
+      case "Repair Quality":
+      // Logic for handling "Repair Quality" rating
+        return rating;
+      case "Efficiency":
+      // Logic for handling "Efficiency" rating
+        return rating;
+      case "Personal Profile":
+      // Logic for handling "Personal Profile" rating
+        return rating;
+      default:
+      // Handle the default case if the category is not recognized
+        return 0.0;
+    }
+  }
+
+
   Widget content(){
     return Row(
         children: [
@@ -256,8 +346,14 @@ class _FeedbackPageState extends State<FeedbackPage> {
             itemBuilder: ( context, _)=> Icon(Icons.star,
             color: Colors.amber,
             ),
-   onRatingUpdate: (rating) {
-              print(rating);
+           onRatingUpdate: (double value) {
+             rating = value;
+             // Assuming you want to get the rating for "Login Trouble" option
+             double loginTroubleRating = getRating("Login Trouble", rating);
+             double repairQualityRating = getRating("Repair Quality", rating);
+             double efficiencyRating = getRating("Repair Quality", rating);
+             double personalProfileRating = getRating("Personal Profile", rating);
+
             })
         ],
       );

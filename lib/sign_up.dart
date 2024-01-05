@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:ui/model/patient_model.dart';
+
+import 'login.dart';
 
 class SignupPage extends StatelessWidget {
 
@@ -18,7 +19,7 @@ class SignupPage extends StatelessWidget {
 
   String url = "http://192.168.0.10:8080/pkums/patient/signup";
 
-  Patient patient = Patient(0, "", "", "", "", "", "", 0.0, 0.0);
+  //Patient patient = Patient(0, "", "", "", "", "", "", 0.0, 0.0);
 
   Future register() async{
     var response = await http.post(Uri.parse(url),
@@ -30,30 +31,21 @@ class SignupPage extends StatelessWidget {
               "ic": icEdittingController.text,
               "phone": phoneEdittingController.text,
               "name": nameEdittingController.text,
-              "height": heightEdittingController.text,
-              "weight": weightEdittingController.text,
-              "gender": genderEdittingController.text,
             }
         )
     );
 
     if(emailEdittingController.text.endsWith('@student.utem.edu.my')){
+      print(response.body);
       try{
-        if(response.body != null){
-
+        if(response.statusCode == 200 ){
           Fluttertoast.showToast(
-            msg: "Successful registered! You will be redirected to login",
+            msg: "Successful registered!",
             backgroundColor: Colors.white,
             textColor: Colors.red,
             toastLength: Toast.LENGTH_LONG,
             fontSize: 16.0,
           );
-
-          /*Future.delayed(Duration(seconds: 5), () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => Login()),
-        );
-      });*/
         }
       }catch(e){
         print("Error: $e");
@@ -187,7 +179,8 @@ class SignupPage extends StatelessWidget {
                         foregroundColor: MaterialStateProperty.all(Colors.black),
                         backgroundColor: MaterialStateProperty.all(Colors.deepPurple[100]),
                       ),
-                      onPressed: () {
+                      onPressed: (){
+                        register();
                       }, child: const Text("Register")),
                 ],
               ),

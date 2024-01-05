@@ -55,7 +55,7 @@ class _BookingPageState extends State<BookingPage> {
   late List<Appointment> specificAppointment = [];
   Future<void> validateAppointment(String date, String time) async {
     final response = await http.get(
-        Uri.parse('http://192.168.110.196:8080/pkums/appointment/$date/$time'));
+        Uri.parse('http://10.0.3.2:8080/pkums/appointment/$date/$time'));
     try {
       print(response.statusCode);
       print(response.body);
@@ -324,7 +324,7 @@ class _BookingPageState extends State<BookingPage> {
     return TableCalendar(
       focusedDay: _focusDay,
       firstDay: DateTime.now(),
-      lastDay: DateTime(2023,12,31),
+      lastDay: DateTime(2024,12,31),
       calendarFormat: _format,
       currentDay: _currentDay,
       rowHeight: 48,

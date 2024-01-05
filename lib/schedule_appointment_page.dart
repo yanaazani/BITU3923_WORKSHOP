@@ -20,7 +20,7 @@ class ScheduleAppointmentPage extends StatefulWidget {
 }
 
 //enum for appointment status
-enum FilterStatus{pending, complete, cancel}
+enum FilterStatus{pending,waiting, complete, cancel}
 
 class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
 
@@ -84,6 +84,22 @@ class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
     }
   }
 
+  FilterStatus getStatusEnum(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return FilterStatus.pending;
+      case 'waiting':
+        return FilterStatus.waiting;
+      case 'complete':
+        return FilterStatus.complete;
+      case 'cancel':
+        return FilterStatus.cancel;
+      default:
+        return FilterStatus.pending; // Set a default value or handle accordingly
+    }
+  }
+
+
   @override
   void initState() {
     super.initState();
@@ -93,19 +109,10 @@ class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
 
   @override
   Widget build(BuildContext context) {
-    //returned filtered appointment
-    /*List<Appointment> filteredAppointments = appointments.where((appointment) {
-      return appointment.status == status_bar
-          .toString()
-          .split('.')
-          .last;
-    }).toList();*/
-
     List<Appointment> filteredAppointments = appointments.where((appointment) {
       // Return true only if the appointment status matches status_bar
       return appointment.status == status_bar;
     }).toList();
-
 
     return Scaffold(
       appBar: AppBar(
@@ -119,127 +126,128 @@ class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
               const Padding(padding: EdgeInsets.all(8.0),),
               Container(
                 width: double.infinity,
-                height: 40,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    for(FilterStatus filterStatus in FilterStatus.values)
-                      Expanded(child: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            status_bar = filterStatus;
-                            _alignment = filterStatus == FilterStatus.pending
-                                ? Alignment.centerLeft
-                                : filterStatus == FilterStatus.complete
-                                ? Alignment.center
-                                : Alignment.centerRight;
-                          });
-                        },
-                        child: Center(
-                          child: Text(filterStatus.name),
+                child: DefaultTabController(
+                  length: FilterStatus.values.length,
+                  child: TabBar(
+                    onTap: (index) {
+                      setState(() {
+                        status_bar = FilterStatus.values[index];
+                        switch (status_bar) {
+                          case FilterStatus.pending:
+                            _alignment = Alignment.centerLeft;
+                            break;
+                          case FilterStatus.complete:
+                            _alignment = Alignment.center;
+                            break;
+                          case FilterStatus.cancel:
+                            _alignment = Alignment.centerRight;
+                            break;
+                          case FilterStatus.waiting:
+                            _alignment = Alignment.topCenter; // Set it to the top center
+                            break;
+                        }
+                      });
+                    },
+                    tabs: [
+                      for (FilterStatus filterStatus in FilterStatus.values)
+                        Tab(
+                          child: Text(filterStatus.name,
+                            style: TextStyle(
+                              fontSize: 13,),
                         ),
-                      ))
-                  ],
+                        )
+                    ],
+                  ),
                 ),
               ),
-              AnimatedAlign(alignment: _alignment,
-                duration: const Duration(milliseconds: 200),
-                child: Container(
-                  width: 100,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.deepPurple[200],
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Center(
-                    child: Text(
-                      status_bar.name,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
 
-                      ),
-                    ),
-                  ),
-                ),)
             ],
           ),
           Expanded(
               child: ListView.builder(
                   itemCount: appointments.length,
                   itemBuilder: (context, index) {
-                    Appointment appointment = appointments[index];
-                    return Card(
-                      shape: RoundedRectangleBorder(
-                        side: const BorderSide(
-                          color: Colors.grey,
+                    //Appointment appointment = appointments[index];
+                    if (index >= 0 && index < appointments.length) {
+                      Appointment appointment = appointments[index];
+
+                      return Card(
+                        shape: RoundedRectangleBorder(
+                          side: const BorderSide(
+                            color: Colors.grey,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(15),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  appointment.serviceType,
-                                  style: const TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    const Text('Date: ', style: TextStyle(
+                        child: Padding(
+                          padding: const EdgeInsets.all(15),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    appointment.serviceType,
+                                    style: const TextStyle(
                                       color: Colors.black,
                                       fontWeight: FontWeight.bold,
-                                    ),),
-                                    Text(
-                                      appointment.bookingDate,
-                                      style: const TextStyle(
-                                        color: Colors.black,
-                                      ),
                                     ),
-                                  ],
-                                ),
-                                Row(
-                                  children: [
-                                    const Text('Time: ', style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold,),
-                                    ),
-                                    Text(
-                                      appointment.bookingTime,
-                                      style: const TextStyle(
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Row(
+                                  ),
+                                  Row(
                                     children: [
-                                      Text('Rate your experience:  ',
-                                        style: TextStyle(
+                                      const Text('Date: ', style: TextStyle(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold,
+                                      ),),
+                                      Text(
+                                        appointment.bookingDate,
+                                        style: const TextStyle(
                                           color: Colors.black,
-                                          fontWeight: FontWeight.bold,),),
-                                      content(),
-                                    ]
-                                )
+                                        ),
+                                      ),
+                                    ],
+                                  ), // To display the appointment's date
+                                  Row(
+                                    children: [
+                                      const Text('Time: ', style: TextStyle(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold,),
+                                      ),
+                                      Text(
+                                        appointment.bookingTime,
+                                        style: const TextStyle(
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ],
+                                  ), // To display the appointment's time
+                                  Row(
+                                      children: [
+                                        Text('Rate your experience:  ',
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.bold,),),
+                                        content(),
+                                      ]
+                                  )  // Rating
 
-                              ],
-                            )
-                          ],
+                                ],
+                              )
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  }))
+                      );
+                    } else {
+                      // Handle the case where the index is out of bounds
+                      return SizedBox
+                          .shrink(); // or another widget indicating no data
+                    }
+                  },
+                    ))
         ],
       ),
     );
@@ -256,10 +264,21 @@ class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
             allowHalfRating: false,
             itemCount: 5,
             itemSize: 30,
-            itemBuilder: (context, _) =>
-                Icon(Icons.star,
-                  color: Colors.amber,
-                ),
+            itemBuilder: (context, index) {
+              switch(index) {
+                case 0:
+                  return Icon(Icons.sentiment_very_dissatisfied,
+                      color: Colors.red);
+                case 1:
+                  return Icon(Icons.sentiment_neutral,
+                      color: Colors.amber);
+                case 2:
+                  return Icon(Icons.sentiment_very_satisfied_outlined,
+                      color: Colors.green);
+                default:
+                  return Text("");
+              }
+            },
             onRatingUpdate: (rating) {
               print(rating);
             })
