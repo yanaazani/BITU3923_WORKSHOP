@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ui/booking_appointment_page.dart';
 import 'package:ui/feedback.dart';
+import 'package:ui/main.dart';
 import 'package:ui/schedule_appointment_page.dart';
 import 'package:ui/user_profile.dart';
 
@@ -53,21 +54,27 @@ class _MenuPageState extends State<MenuPage> {
                   child: Text('Hai ${widget.userId}'),
                 ),
                 ListTile(
-                  title: Text('Privacy Policy'),
+                  title: const Text('Privacy Policy'),
                   onTap: () {
-                    // Handle item tap
+                    Navigator.push(context, MaterialPageRoute(
+                        builder: (context) => const PrivacyPolicy(),
+                      ),
+                    );
                   },
                 ),
                 ListTile(
-                  title: Text('About Us'),
+                  title: const Text('About Us'),
                   onTap: () {
-                    // Handle item tap
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (context) => const AboutMe(),
+                    ),
+                    );
                   },
                 ),
                 ListTile(
-                  title: Text('Logout'),
+                  title: const Text('Logout'),
                   onTap: () {
-                    // Handle item tap
+                    _showLogoutConfirmationDialog(context);
                   },
                 ),
                 // Add more items as needed
@@ -76,16 +83,14 @@ class _MenuPageState extends State<MenuPage> {
           ),
           body: SingleChildScrollView(
               child: SizedBox(
-                height: MediaQuery.of(context).size.height,
+                height: 800, //MediaQuery.of(context).size.height,
                 child:  MyGridView(userId: widget.userId),
               )
           )
       ),
     );
-
   }
 }
-
 
 class MyGridView extends StatefulWidget {
   final int userId; // Assuming userId is of type int
@@ -112,14 +117,18 @@ class _MyGridViewState extends State<MyGridView> {
                     fontSize: 30),),
             ],
           ),),
-         const Padding(padding: EdgeInsets.all(10),),
+         const Padding(padding: EdgeInsets.all(3),),
       SizedBox(
-        height: 120,
+        height: 110,
         width: 500,
         child: ClipRRect(
             borderRadius: BorderRadius.circular(20.0),
           child: Container(
+              margin: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
               color: Colors.deepPurple[100],
+              borderRadius: BorderRadius.circular(15.0), // Set the border radius
+            ),
               child: GridView.count(
                 primary: false,
                 //padding: const EdgeInsets.all(10),
@@ -130,8 +139,8 @@ class _MyGridViewState extends State<MyGridView> {
                   Column(
                     children: [
                       const Padding(padding: EdgeInsets.all(5)),
-                      const Text("Appointment", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold,),),
-                      IconButton.filledTonal(icon: const Icon(Icons.local_hospital), iconSize: 50,
+                      const Text("Appointment", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold,),),
+                      IconButton.filledTonal(icon: const Icon(Icons.local_hospital), iconSize: 40,
                         onPressed: (){
                           Navigator.push(context, MaterialPageRoute(builder: (context)=>BookingPage(userId: widget.userId)),);
                         },),
@@ -140,9 +149,9 @@ class _MyGridViewState extends State<MyGridView> {
                   Column(
                     children: [
                       const Padding(padding: EdgeInsets.all(5)),
-                      const Text("Schedule", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold,),),
+                      const Text("Schedule", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold,),),
                       IconButton.filledTonal(
-                          iconSize: 50,
+                          iconSize: 40,
                           onPressed: (){
                             Navigator.push(context, MaterialPageRoute(builder: (context)=> ScheduleAppointmentPage(userId: widget.userId,)),);
                           },
@@ -152,9 +161,9 @@ class _MyGridViewState extends State<MyGridView> {
                   Column(
                     children: [
                       const Padding(padding: EdgeInsets.all(5)),
-                      const Text("Feedback", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold,),),
+                      const Text("Feedback", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold,),),
                       IconButton.filledTonal(
-                          iconSize: 50,
+                          iconSize: 40,
                           onPressed: (){
                             Navigator.push(context, MaterialPageRoute(builder: (context)=> FeedbackPage(userId: widget.userId,)),);
                           },
@@ -164,9 +173,9 @@ class _MyGridViewState extends State<MyGridView> {
                   Column(
                     children: [
                       const Padding(padding: EdgeInsets.all(5)),
-                      const Text("Profile", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold,),),
+                      const Text("Profile", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold,),),
                       IconButton.filledTonal(
-                          iconSize: 50 ,
+                          iconSize: 40 ,
                           onPressed: (){
                             Navigator.push(context, MaterialPageRoute(builder: (context)=> UserProfile(userId: widget.userId)),);
                           },
@@ -179,7 +188,7 @@ class _MyGridViewState extends State<MyGridView> {
       ),
             ),
         const Padding(padding: EdgeInsets.all(10),),
-        Row(
+        const Row(
           children: [
             Expanded(
               child: Text(
@@ -224,6 +233,37 @@ class _MyGridViewState extends State<MyGridView> {
     );
   }
 }
+Future<void> _showLogoutConfirmationDialog(BuildContext context) async {
+  return showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to log out?'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close the dialog
+            },
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              // Perform logout logic here
+              // For now, just navigate to the login screen
+              Navigator.of(context).pop(); // Close the dialog
+              Navigator.push(context, MaterialPageRoute(
+                  builder: (context) => const MyApp(),
+              ),
+              );// Replace with your login route
+            },
+            child: const Text('Logout'),
+          ),
+        ],
+      );
+    },
+  );
+}
 
 class PictureWidget extends StatelessWidget {
   final String imagePath;
@@ -256,23 +296,27 @@ class ListBarWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(5, 0, 5, 5),
+      margin: const EdgeInsets.fromLTRB(5, 10, 5, 5),
       padding: const EdgeInsets.all(25),
-      height: 100,
+      height: 110,
       decoration: BoxDecoration(
         color: Colors.deepPurple[100],
         borderRadius: BorderRadius.circular(15.0), // Set the border radius
       ),
-      child: ListView(
-        children: [
-          buildListBar(context, 'Announcement 1', 'Salam sejahtera!'
-              ' \n\nDear Respected customer,\n'
-              'Please attend the clinic right at the time of your appointment. '
-              '\n\nPatient who do not '
-              'meet the appointment time will not be accepted and will need to book a new slot.\n'
-              '\nFor any question, please call 06-2701221'),
-          buildListBar(context, 'Announcement 2', 'Make sure to make appointment!'),
-        ],
+      child: Center(
+        child: ListView(
+          children: [
+            buildListBar(context, '\t\t\t\t\t\t\t\t\t'
+                '\t\t\t\t\t\t\t\t\t\t\t\t\tAnnouncement 1', 'Salam sejahtera!'
+                ' \n\nDear Respected customer,\n'
+                'Please attend the clinic right at the time of your appointment. '
+                '\n\nPatient who do not '
+                'meet the appointment time will not be accepted and will need to book a new slot.\n'
+                '\nFor any question, please call 06-2701221'),
+            buildListBar(context, '\t\t\t\t\t\t\t\t\t\t\t\t\t\t'
+                '\t\t\t\t\t\t\t\tAnnouncement 2', 'Make sure to make appointment!'),
+          ],
+        ),
       ),
     );
   }
@@ -282,14 +326,17 @@ class ListBarWidget extends StatelessWidget {
       onTap: () {
         showAnnouncementBottomSheet(context, announcementText);
       },
-      child: Container(
-        height: 25,
-        margin: const EdgeInsets.only(bottom: 8),
-        color: Colors.deepPurple[100], // Customize the color of the list bar
-        child: Center(
-          child: Text(
-            announcement,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+        child: Container(
+          height: 30,
+          margin: const EdgeInsets.only(bottom: 8),
+          color: Colors.deepPurple[100], // Customize the color of the list bar
+          child: Center(
+            child: Text(
+              announcement,
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+            ),
           ),
         ),
       ),
@@ -309,10 +356,10 @@ class ListBarWidget extends StatelessWidget {
                   size: 50,
                   color: Colors.blueGrey,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
                 Text(
                   announcementText,
-                  style: const TextStyle(fontSize: 18),
+                  style: const TextStyle(fontSize: 15),
                 ),
               ],
             )
@@ -322,6 +369,10 @@ class ListBarWidget extends StatelessWidget {
   }
 }
 
+/**
+ * This for important infographic photos display under Highlights
+ * inside menu interface
+ */
 class Infografik extends StatelessWidget {
   const Infografik({required this.image});
 final String image;
@@ -336,6 +387,248 @@ final String image;
     image: AssetImage(image)),
       ),
     );
+  }
 
+}
+
+/**
+ * This class is for Privacy Policy inside menu button choices.
+ */
+class PrivacyPolicy extends StatelessWidget {
+  const PrivacyPolicy({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Privacy Policy'),
+      ),
+      body: const SingleChildScrollView(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Privacy Policy for MediConnect',
+              style: TextStyle(
+                fontSize: 20.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 16.0),
+            Text(
+              'Last updated: 17/1/2024',
+              style: TextStyle(
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+            SizedBox(height: 16.0),
+            Text(
+              'Welcome to MediConnect! This Privacy Policy outlines how your '
+                  'personal information is collected, used, and shared when '
+                  'you use our services.',
+            ),
+            SizedBox(height: 16.0),
+            Text(
+              'How We Use Your Information',
+              style: TextStyle(
+                fontSize: 18.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 16.0),
+            Text(
+              'We use the collected information for various '
+                  'purposes, including but not limited to:',
+            ),
+            PrivacyPolicyList(),
+            SizedBox(height: 16.0),
+            Text(
+              'Sharing Your Information',
+              style: TextStyle(
+                fontSize: 18.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 16.0),
+            Text(
+              'We may share your personal information with:',
+            ),
+            PrivacyPolicyList2(),
+            SizedBox(height: 16.0),
+            Text(
+              'Contact Us',
+              style: TextStyle(
+                fontSize: 18.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 16.0),
+            Text(
+              'If you have any questions or concerns about this Privacy Policy, '
+                  'please contact us at 06-123456',
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
+
+/**
+ * This is to display the privacy policy content
+ */
+class PrivacyPolicyList extends StatelessWidget {
+  const PrivacyPolicyList({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      children: [
+        bulletedPoint('Providing and maintaining our services'),
+        bulletedPoint('Personalizing your experience'),
+        bulletedPoint('Improving our services'),
+        bulletedPoint('Communicating with you'),
+        bulletedPoint('Ensuring the security of our platform'),
+      ],
+    );
+  }
+
+  Widget bulletedPoint(String text) {
+    return ListTile(
+      leading: const Icon(Icons.check, size: 16),
+      title: Text(text, style: const TextStyle(fontSize: 14),),
+    );
+  }
+}
+/**
+ * This is to display the About Me content
+ */
+class PrivacyPolicyList2 extends StatelessWidget {
+  const PrivacyPolicyList2({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      children: [
+        bulletedPoint2('Healthcare providers for the purpose of '
+            'facilitating medical services'),
+        bulletedPoint2('Legal authorities when required by law'),
+      ],
+    );
+  }
+  Widget bulletedPoint2(String text) {
+    return ListTile(
+      leading: const Icon(Icons.check, size: 16),
+      title: Text(text, style: const TextStyle(fontSize: 14),),
+    );
+  }
+}
+
+/**
+ * This class is for About Me inside menu button choices.
+ */
+class AboutMe extends StatelessWidget {
+  const AboutMe({Key? key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: const Text('About Us'),
+        ),
+        body: const SingleChildScrollView(
+                padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'MediConnect: Patient Appointments and Medical Records System',
+              style: TextStyle(
+                fontSize: 20.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 16.0),
+            Text(
+              'MediConnect, a groundbreaking initiative developed by Workshop 2 '
+                  'students at UTeM, aims to redefine healthcare convenience '
+                  'within the university community. This cutting-edge hybrid '
+                  'platform seamlessly integrates mobile accessibility for '
+                  'lecturers and students, complemented by a user-friendly web '
+                  'interface tailored for healthcare providers.',
+            ),
+            SizedBox(height: 16.0),
+            Text(
+              'Innovation for Streamlined Healthcare Services',
+              style: TextStyle(
+                fontSize: 18.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              'MediConnect addresses the challenges faced by both patients'
+                  ' and doctors at UTeM\'s Pusat Kesihatan UTeM (PKU). Through '
+                  'the innovative system, we simplify the entire process of '
+                  'appointment scheduling, providing an effortless gateway to '
+                  'top-notch healthcare services within the university.',
+            ),
+            SizedBox(height: 16.0),
+            Text(
+              'Key Objectives',
+              style: TextStyle(
+                fontSize: 18.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              'Our primary objectives revolve around creating a user-friendly'
+                  ' mobile app dedicated to UTeM, enhancing the booking, tracking,'
+                  ' and check-in experience. Simultaneously, we\'ve designed a '
+                  'robust web platform for doctors, empowering them with efficient '
+                  'management tools for appointments, room allocations, and medical notes.',
+            ),
+            SizedBox(height: 16.0),
+            Text(
+              'Benefits for Doctors and Patients',
+              style: TextStyle(
+                fontSize: 18.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              'One of the distinctive features of MediConnect is the'
+                  ' implementation of automatic updates of medical notes '
+                  'in the mobile app post-appointments. This ensures that '
+                  'both doctors and patients have access to real-time information,'
+                  ' fostering a collaborative and informed healthcare environment.',
+            ),
+            SizedBox(height: 16.0),
+            Text(
+              'Student Project for Healthcare Transformation',
+              style: TextStyle(
+                fontSize: 18.0,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              'It\'s essential to note that MediConnect is a product of '
+                  'dedication and innovation by Workshop 2 students. This '
+                  'project is a testament to our commitment to advancing '
+                  'healthcare technologies within the academic community.'
+                  ' We believe that the MediConnect system will not only'
+                  ' simplify healthcare processes but also contribute '
+                  'to the overall well-being of UTeM\'s academic community.',
+            ),
+            SizedBox(height: 16.0),
+          ],
+        ),
+      )
+    );
+  }
+}
+

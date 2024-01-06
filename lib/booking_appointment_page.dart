@@ -2,8 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:ui/model/patient_model.dart';
-import 'package:ui/model/room_model.dart';
 import 'package:ui/model/appointment_model.dart';
 import 'package:ui/success_booking.dart';
 import 'package:http/http.dart' as http;
@@ -21,6 +19,15 @@ class BookingPage extends StatefulWidget {
 class _BookingPageState extends State<BookingPage> {
   late final int userId;
   _BookingPageState({required this.userId});
+
+  /*Appointment newAppointment = Appointment(
+      appointmentId: 0, dateSelect, bookingTime: timeSelect,
+      status: "Pending", serviceType: _selectedServiceType,
+      patient: Patient(1, "", "", "", "", "", "", 0.0, 0.0),
+      room: Room(null, number)
+  );*/
+
+
 
   CalendarFormat _format = CalendarFormat.month;
   DateTime _focusDay = DateTime.now();
@@ -53,49 +60,52 @@ class _BookingPageState extends State<BookingPage> {
    * 4. Implement the front-end method to the UI by calling the method.
    */
   late List<Appointment> specificAppointment = [];
-  Future<void> validateAppointment(String date, String time) async {
-    final response = await http.get(
-        Uri.parse('http://10.0.3.2:8080/pkums/appointment/$date/$time'));
-    try {
-      print(response.statusCode);
-      print(response.body);
-      // Add this line to see if the response is received correctly
-      print("This is the appointment length: $response");
 
-      if (response.statusCode == 200) {
-        List<dynamic> data = jsonDecode(response.body);
-        setState(() {
-          specificAppointment = data.map((json) =>
-              Appointment.fromJson(json)).toList();
-          print("Number of appointments based on the list: "
-              "${specificAppointment.length}");
+  Future<void> validateAppointment(String date, String time, String status,
+      String serviceType, int patient, int room) async {
+    final response = await http.get(Uri.parse('http://192.168.0.10:8080/pkums'
+        '/appointment/getappointment/$date/$time'));
 
-          if (specificAppointment.length > 3) {
-            Fluttertoast.showToast(
-              msg: 'Sorry, the slot: $time on $date is full!',
-              backgroundColor: Colors.white,
-              textColor: Colors.red,
-              gravity: ToastGravity.CENTER,
-              toastLength: Toast.LENGTH_SHORT,
-              fontSize: 16.0,
-            );
-          }
-        });
-      } else {
-        throw Exception('Failed to fetch appointment list');
+    if (response.statusCode == 200) {
+      List<dynamic> data = jsonDecode(response.body);
+      setState(() {
+        specificAppointment = data.map((json) =>
+            Appointment.fromJson(json)).toList();
+        print("Number of appointments based on the list: "
+            "${data.length}");
+      });
+
+      if (specificAppointment.length >= 3) {
+        Fluttertoast.showToast(
+          msg: 'Sorry, the slot: $time on $date is full!',
+          backgroundColor: Colors.white,
+          textColor: Colors.red,
+          gravity: ToastGravity.CENTER,
+          toastLength: Toast.LENGTH_SHORT,
+          fontSize: 16.0,
+        );
       }
-    } catch (e) {
-      print('Error fetching appointment list: $e');
-      // Handle the exception as needed, for example, show an error message to the user
+      else {
+        insertAppointment(date, time, status,
+            serviceType, patient, room);
+      }
+
+    } else {
+      throw Exception('Failed to fetch job');
     }
+
   }
+
+
+
 
   /**
    * Method implementation for add appointment slot
    * only if the current slot available is less than or equal to 3
    */
-  Future<void> insertAppointment(String bookingDate, String bookingTime,
-      String status, String serviceType, int patient, int room) async {
+
+  Future<void> insertAppointment(String? bookingDate, String? bookingTime,
+      String? status, String? serviceType, int? patient, int? room) async {
     final Uri uri = Uri.parse('http://192.168.0.10:8080/pkums/appointment/insertappointment');
 
     try {
@@ -120,16 +130,32 @@ class _BookingPageState extends State<BookingPage> {
           )
       );
 
+      print(response.body);
+
       if (response.statusCode == 200) {
-        // Handle success response
-        // For example, show a success message
-        Fluttertoast.showToast(
-          msg: 'Appointment added successfully!',
-          backgroundColor: Colors.white,
-          textColor: Colors.green,
-          gravity: ToastGravity.CENTER,
-          toastLength: Toast.LENGTH_SHORT,
-          fontSize: 16.0,
+        // Assuming the response body contains the appointment ID
+        Map<String, dynamic> responseData = json.decode(response.body);
+        var appointmentId = responseData["id"];
+        var dateParts = responseData["bookingDate"].split('-');
+        var year = int.parse(dateParts[0]);
+        var month = dateParts[1].padLeft(2, '0'); // Ensure two digits for month
+        var day = dateParts[2].padLeft(2, '0');   // Ensure two digits for day
+
+        var parsedBookingDate = DateTime.parse('$year-$month-$day');
+        var bookingTimeString = responseData["bookingTime"];
+        print(appointmentId);
+
+        // Navigate to the success page
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SuccessBookingPage(
+              userId: userId,
+              appointmentId: appointmentId.toString(),
+              bookingDate: parsedBookingDate,
+              bookingTime: bookingTime.toString(),
+            ),
+          ),
         );
       } else {
         throw Exception('Failed to add appointment');
@@ -243,7 +269,7 @@ class _BookingPageState extends State<BookingPage> {
                     ),
                     borderRadius: BorderRadius.circular(15),
                     color: _currentIndex == index
-                        ? Colors.deepPurple
+                        ? Colors.deepPurple[100]
                         : null,
                   ),
                   alignment: Alignment.center,
@@ -302,11 +328,10 @@ class _BookingPageState extends State<BookingPage> {
 
                       print("Selected date: $dateSelect");
                       print("Selected time: $timeSelect");
-                      await validateAppointment(dateSelect, timeSelect);
-                      print("dateselect $dateSelect");
-
-                      await insertAppointment(dateSelect, timeSelect,
+                      await validateAppointment(dateSelect, timeSelect,
                           "Pending", _selectedServiceType, userId, 1);
+
+
                     }
                     //Navigator.push(context, MaterialPageRoute(builder: (context)=>const SuccessBookingPage()),);
                   }, child: const Text("Make Appointment")),
@@ -324,7 +349,7 @@ class _BookingPageState extends State<BookingPage> {
     return TableCalendar(
       focusedDay: _focusDay,
       firstDay: DateTime.now(),
-      lastDay: DateTime(2024,12,31),
+      lastDay: DateTime(2024,12,30),
       calendarFormat: _format,
       currentDay: _currentDay,
       rowHeight: 48,
