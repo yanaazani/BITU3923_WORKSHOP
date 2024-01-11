@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
+import 'package:ui/OneSignalController.dart';
 import 'package:ui/model/appointment_model.dart';
-import 'package:ui/qrscanner.dart';
+import 'success_booking.dart';
 
 class ScheduleAppointmentPage extends StatefulWidget {
   final int userId;
@@ -18,14 +18,15 @@ class ScheduleAppointmentPage extends StatefulWidget {
 enum FilterStatus { pending, complete, waiting }
 
 class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
-  late final int userId;
+  late int userId;
   FilterStatus status_bar = FilterStatus.pending;
   List<Appointment> appointments = [];
 
-  Future<List<Appointment>> getAppointmentsByStatusAndUser(String status) async {
+  Future<void> getAppointmentsByStatusAndUser(String status) async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.0.10:8080/pkums/appointment/getstatus/$status/patient/$userId'),
+        Uri.parse('http://192.168.0.10:8080/pkums/'
+            'appointment/getstatus/$status/patient/$userId'),
       );
       if (response.statusCode == 200) {
         final List<dynamic> jsonResponse = jsonDecode(response.body);
@@ -35,7 +36,6 @@ class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
         setState(() {
           this.appointments = appointments;
         });
-        return appointments;
       } else {
         throw Exception('Failed to fetch appointments');
       }
@@ -45,6 +45,29 @@ class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
       throw e;
     }
   }
+
+  Future<void> rateAppointment(int appointmentId, int rating) async {
+    try {
+      final response = await http.put(
+        Uri.parse('http://192.168.0.10:8080/pkums/appointment/updateservicerate'
+            '/$appointmentId/$rating'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'rating': rating}),
+      );
+
+      if (response.statusCode == 200) {
+        print('Rating updated successfully');
+      } else {
+        print('Failed to update rating. Status code: ${response.statusCode}');
+        // Handle the error accordingly
+      }
+    } catch (e, stackTrace) {
+      print('Error in rateAppointment: $e');
+      print('Stack trace: $stackTrace');
+      // Handle the error accordingly
+    }
+  }
+
 
   @override
   void initState() {
@@ -58,7 +81,7 @@ class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.deepPurple[100],
-        title: const Text("Schedule"),
+        title: Text("Schedule"),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -75,15 +98,35 @@ class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
             ),
           ),
           Expanded(
-            child: appointments.isEmpty
-                ? const Center(child: Text('No Appointments'))
-                : ListView.builder(
-              itemCount: appointments.length,
-              itemBuilder: (context, index) {
-                Appointment appointment = appointments[index];
-                return AppointmentCard(appointment: appointment);
+            child: appointments.isNotEmpty && appointments.any((appointment) {
+              DateTime bookingDateTime = DateTime.parse(appointment.bookingDate.split('-').map((part) {
+                return part.padLeft(2, '0'); // Ensure two digits for each part
+              }).join('-'));
+              DateTime currentDate = DateTime.now();
+              return bookingDateTime.isAfter(currentDate) || bookingDateTime.day == currentDate.day;
+            })
+                ? ListView.builder(
+                itemCount: appointments.length,
+                itemBuilder: (context, index) {
+                final appointment = appointments[index];
+                DateTime bookingDateTime = DateTime.parse(appointment.bookingDate.split('-').map((part) {
+                  return part.padLeft(2, '0'); // Ensure two digits for each part
+                }).join('-'));
+                DateTime currentDate = DateTime.now();
+                bool isOnOrAfterCurrentDay = bookingDateTime.isAfter(currentDate) || bookingDateTime.day == currentDate.day;
+
+                if (isOnOrAfterCurrentDay) {
+                  return AppointmentCard(
+                    appointment: appointment,
+                    userId: userId,
+                    rateAppointment: rateAppointment, // Pass the rateAppointment function here
+                  );
+                } else {
+                  return SizedBox(); // Return an empty container if not meeting the condition
+                }
               },
-            ),
+            )
+                : Center(child: Text('No Appointments')),
           ),
         ],
       ),
@@ -107,158 +150,196 @@ class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
 }
 
 class AppointmentCard extends StatefulWidget {
+  late final int userId;
+
   final Appointment appointment;
 
-  const AppointmentCard({Key? key, required this.appointment}) : super(key: key);
+  final Function(int, int) rateAppointment;
+  AppointmentCard({Key? key, required this.appointment, required this.userId,
+    required this.rateAppointment}) : super(key: key);
 
   @override
   State<AppointmentCard> createState() => _AppointmentCardState();
 }
 
 class _AppointmentCardState extends State<AppointmentCard> {
-
-  bool buttonEnabled = false;
-
-  DateTime convertToDateTime(String appointmentDateTime){
-    // Define the date format for parsing
-    DateFormat dateFormat = DateFormat("yyyy-M-dd h:mma");
-
-    // Parse the string to a DateTime object
-    DateTime dateTime = dateFormat.parse(appointmentDateTime);
-
-
-    return dateTime;
-  }
-
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    print(widget.appointment.bookingDate);
-    print(widget.appointment.bookingTime);
-
-    String appointmentDateTime = "${widget.appointment.bookingDate} ${widget.appointment.bookingTime}";
-
-    print(appointmentDateTime);
-
-    DateTime bookingTimeStamp = convertToDateTime(appointmentDateTime);
-    print(bookingTimeStamp);
-
-
-
-  }
-
-
+  bool hasRated = false;
 
   @override
   Widget build(BuildContext context) {
-
-
-
-
-    String formattedDate = widget.appointment.bookingDate.split('-').map((part) {
+    bool isPending = this.widget.appointment.status.toLowerCase() == "pending";
+    bool isComplete = this.widget.appointment.status.toLowerCase() == "complete";
+    String formattedDate = this.widget.appointment.bookingDate.split('-').map((part) {
       return part.padLeft(2, '0'); // Ensure two digits for each part
     }).join('-');
     DateTime bookingDateTime = DateTime.parse(formattedDate);
     Duration difference = bookingDateTime.difference(DateTime.now());
 
-    bool canCheckIn =  widget.appointment.status.toLowerCase() == "Waiting" && difference <= const Duration(minutes: 30);
+    bool canCheckIn = this.widget.appointment.status.toLowerCase() == "Waiting"
+        && difference <= Duration(minutes: 30);
 
-    return Card(
-      color: Colors.white,
-      elevation: 3,
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              widget.appointment.serviceType,
-              style: const TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Text(
-                  'Date: ',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  widget.appointment.bookingDate,
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                Text(
-                  'Time: ',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  widget.appointment.bookingTime,
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-            if (widget.appointment.status.toLowerCase() == "complete")
-              RatingBar.builder(
-                initialRating: 0,
-                minRating: 1,
-                direction: Axis.horizontal,
-                allowHalfRating: false,
-                itemCount: 5,
-                itemSize: 20.0,
-                itemBuilder: (context, index) {
-                  switch(index) {
-                    case 0:
-                      return const Icon(Icons.sentiment_very_dissatisfied,
-                          color: Colors.red);
-                    case 1:
-                      return const Icon(Icons.sentiment_neutral,
-                          color: Colors.amber);
-                    case 2:
-                      return const Icon(Icons.sentiment_very_satisfied_outlined,
-                          color: Colors.green);
-                    default:
-                      return const Text("");
-                  }
-                },
-                onRatingUpdate: (rating) {
-                  print(rating);
-                },
-              ),
-            ElevatedButton(
-              onPressed:(){
-                Navigator.push(context, MaterialPageRoute(builder: (Context) => QRScannerPage()));
-              },
-              style: ElevatedButton.styleFrom(
-                primary: Colors.deepPurple[50],
-              ),
-              child: const Text('Check-In'),
-            ),
-          ],
+    //bool hasRated = widget.appointment.serviceRate != null;
+
+      return Card(
+        color: Colors.white,
+        elevation: 3,
+        margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
         ),
-      ),
-    );
+        child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    this.widget.appointment.serviceType,
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text(
+                        'Date: ',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        this.widget.appointment.bookingDate,
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        'Time: ',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        this.widget.appointment.bookingTime,
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (isPending)
+                    ElevatedButton(
+                      onPressed: () {
+
+                        OneSignalController notify = OneSignalController();
+
+                        List<String> targetUser = [];
+                        targetUser.add(widget.userId.toString());
+                        print("UserID: $targetUser");
+                        notify.sendNotification("Check-In", "You have successfully check-in", targetUser);
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SuccessBookingPage(
+                              appointmentId: widget.appointment.appointmentId,
+                              bookingDate: bookingDateTime,
+                              bookingTime: widget.appointment.bookingTime.toString(),
+                              userId: widget.userId,
+                            ),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        primary: Colors.deepPurple[50],
+                      ),
+                      child: Text('Check-In'),
+                    ),
+                if(isComplete)
+                  Row(
+                    children: [
+                      if (!hasRated)
+                        ElevatedButton(
+                          onPressed: () {
+                          // Show a pop-up dialog when the "Rate Service" button is pressed
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                          return AlertDialog(
+                              title: Text("Service Satisfied"),
+                              content: RatingBar.builder(
+                                initialRating: 0,
+                                minRating: 1,
+                                direction: Axis.horizontal,
+                                allowHalfRating: false,
+                                itemCount: 5,
+                                itemSize: 30,
+                                itemBuilder: (context, index) {
+                              switch (index) {
+                                  case 0:
+                                  return const Icon(Icons.sentiment_very_dissatisfied,
+                                  color: Colors.red);
+                                  case 1:
+                                  return const Icon(Icons.sentiment_satisfied,
+                                  color: Colors.orange);
+                                  case 2:
+                                  return const Icon(Icons.sentiment_neutral,
+                                  color: Colors.amber);
+                                  case 3:
+                                  return const Icon(Icons.sentiment_satisfied_sharp,
+                                  color: Colors.blueAccent);
+                                  case 4:
+                                  return const Icon(Icons.sentiment_very_satisfied_outlined,
+                                  color: Colors.green);
+                                  default:
+                                  return const Text("");
+                                 }
+                              },
+                              onRatingUpdate: (rating) {
+                              // Handle the rating update
+                               print(rating);
+                                widget.rateAppointment(widget.appointment.appointmentId, rating.toInt());
+                                Navigator.of(context).pop(); // Close the dialog
+                                    setState(() {
+                                       hasRated = true; // Update the hasRated variable
+                                    });
+                              },
+                              ),
+                              );
+                          },
+                            );
+                            },
+                              style: ElevatedButton.styleFrom(
+                              primary: Colors.deepPurple[50],
+                            ),
+                               child: Text('Rate Service'),
+                            ),
+                      if (hasRated)
+                        Row(
+                          children: [
+                            Text(
+                              'Your Rating: ${widget.appointment.serviceRate}',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ]
+            )
+            )
+      );
+
   }
 }

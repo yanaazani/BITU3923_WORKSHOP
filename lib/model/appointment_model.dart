@@ -8,6 +8,7 @@ class Appointment {
   String bookingTime = "";
   String status = "";
   String serviceType = "";
+  int serviceRate = 0;
   Patient patient;
   Room room;
 
@@ -17,6 +18,7 @@ class Appointment {
     required this.bookingTime,
     required this.status,
     required this.serviceType,
+    required this.serviceRate,
     required this.patient,
     required this.room,
   });
@@ -41,6 +43,10 @@ class Appointment {
 
   set _serviceType(String value) => serviceType = value;
 
+  int get _serviceRate => serviceRate;
+
+  set _serviceRate(int value) => serviceRate = value;
+
   /**
    * Getter and setter for foreign key
    */
@@ -54,11 +60,12 @@ class Appointment {
 
   Appointment.fromJson(Map<String, dynamic> json)
       :
-        appointmentId = json['id'],
+        appointmentId = json['id'] as int? ?? 0,
         bookingDate = json['bookingDate'],
         bookingTime = json['bookingTime'],
         status = json['status'],
         serviceType = json['serviceType'],
+        serviceRate = json['serviceRate'] as int? ?? 0,
         patient = Patient.fromJson(json["patientId"]),
         room = Room.fromJson(json['roomId']);
 
@@ -69,6 +76,7 @@ class Appointment {
       'bookingTime': bookingTime,
       'status': status,
       'serviceType': serviceType,
+      'serviceRate': serviceRate,
       'patientId': patient.toJson(),
       'roomId': room.toJson(),
     };

@@ -83,7 +83,7 @@ class _MenuPageState extends State<MenuPage> {
           ),
           body: SingleChildScrollView(
               child: SizedBox(
-                height: 800, //MediaQuery.of(context).size.height,
+                height: 1100, //MediaQuery.of(context).size.height,
                 child:  MyGridView(userId: widget.userId),
               )
           )
@@ -106,7 +106,7 @@ class _MyGridViewState extends State<MyGridView> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: [
+      children: <Widget>[
         const ListBarWidget(),
         const Padding(padding: EdgeInsets.only(top: 20, left: 10),
           child: Row(
@@ -134,13 +134,13 @@ class _MyGridViewState extends State<MyGridView> {
                 //padding: const EdgeInsets.all(10),
                 crossAxisSpacing: 2,
                 mainAxisSpacing: 5,
-                crossAxisCount: 4,
+                crossAxisCount: 3,
                 children: <Widget>[
                   Column(
                     children: [
                       const Padding(padding: EdgeInsets.all(5)),
-                      const Text("Appointment", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold,),),
-                      IconButton.filledTonal(icon: const Icon(Icons.local_hospital), iconSize: 40,
+                      const Text("Appointment", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold,),),
+                      IconButton.filledTonal(icon: const Icon(Icons.local_hospital), iconSize: 45,
                         onPressed: (){
                           Navigator.push(context, MaterialPageRoute(builder: (context)=>BookingPage(userId: widget.userId)),);
                         },),
@@ -149,16 +149,16 @@ class _MyGridViewState extends State<MyGridView> {
                   Column(
                     children: [
                       const Padding(padding: EdgeInsets.all(5)),
-                      const Text("Schedule", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold,),),
+                      const Text("Schedule", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold,),),
                       IconButton.filledTonal(
-                          iconSize: 40,
+                          iconSize: 45,
                           onPressed: (){
                             Navigator.push(context, MaterialPageRoute(builder: (context)=> ScheduleAppointmentPage(userId: widget.userId,)),);
                           },
                           icon: const Icon(Icons.calendar_month)),
                     ],
                   ),
-                  Column(
+                  /**Column(
                     children: [
                       const Padding(padding: EdgeInsets.all(5)),
                       const Text("Feedback", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold,),),
@@ -169,13 +169,13 @@ class _MyGridViewState extends State<MyGridView> {
                           },
                           icon: const Icon(Icons.feedback_rounded)),
                     ],
-                  ),
+                  ),**/
                   Column(
                     children: [
                       const Padding(padding: EdgeInsets.all(5)),
-                      const Text("Profile", style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold,),),
+                      const Text("Profile", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold,),),
                       IconButton.filledTonal(
-                          iconSize: 40 ,
+                          iconSize: 45 ,
                           onPressed: (){
                             Navigator.push(context, MaterialPageRoute(builder: (context)=> UserProfile(userId: widget.userId)),);
                           },
@@ -187,6 +187,25 @@ class _MyGridViewState extends State<MyGridView> {
             ),
       ),
             ),
+        const Padding(padding: EdgeInsets.all(10),),
+        const Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Our Doctors',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 30,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const Column(
+          children: [
+        DoctorCard(),
+          ],
+        ),
         const Padding(padding: EdgeInsets.all(10),),
         const Row(
           children: [
@@ -206,7 +225,6 @@ class _MyGridViewState extends State<MyGridView> {
             ),
           ],
         ),
-
         Container(
           height: 400,
           decoration: BoxDecoration(
@@ -628,6 +646,68 @@ class AboutMe extends StatelessWidget {
           ],
         ),
       )
+    );
+  }
+}
+
+class DoctorCard extends StatefulWidget {
+  const DoctorCard({super.key});
+
+  @override
+  State<DoctorCard> createState() => _DoctorCardState();
+}
+
+class _DoctorCardState extends State<DoctorCard> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      height: 200,
+      child: GestureDetector(
+        child: Card(
+          elevation: 5,
+          color: Colors.white,
+          child: Row(
+            children: [
+              SizedBox(
+                width: 100,
+                child: Image.asset('assets/richard.jpg', fit: BoxFit.fill,),
+              ),
+              const Flexible(child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 10,vertical: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Dr Richard', style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),),
+                    Text('Dental', style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),),
+                    Spacer(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Icon(Icons.star, color: Colors.yellow, size: 20,),
+                        Spacer(flex: 1,),
+                        Text('4.5'),
+                        Spacer(flex: 1,),
+                        Text('Reviews'),
+                        Spacer(flex: 1,),
+                        Text('(20)'),
+                        Spacer(flex: 7,),
+                      ],
+                    )
+                  ],
+                ),
+              ))
+            ],
+          ),
+        ),
+
+      ),
     );
   }
 }

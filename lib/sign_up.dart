@@ -17,7 +17,7 @@ class SignupPage extends StatelessWidget {
   TextEditingController weightEdittingController = TextEditingController();
   TextEditingController genderEdittingController = TextEditingController();
 
-  String url = "http://192.168.0.10:8080/pkums/patient/signup";
+  String url = "http:// 192.168.0.10:8080/pkums/patient/signup";
 
   //Patient patient = Patient(0, "", "", "", "", "", "", 0.0, 0.0);
 
@@ -35,7 +35,8 @@ class SignupPage extends StatelessWidget {
         )
     );
 
-    if(emailEdittingController.text.endsWith('@student.utem.edu.my')){
+    if(emailEdittingController.text.endsWith('@student.utem.edu.my') ||
+        emailEdittingController.text.endsWith('@utem.edu.my')){
       print(response.body);
       try{
         if(response.statusCode == 200 ){

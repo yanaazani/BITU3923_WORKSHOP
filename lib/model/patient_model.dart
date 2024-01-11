@@ -13,17 +13,16 @@ class Patient {
       this.phone, this.password, this.gender, this.height, this.weight);
 
   Patient.fromJson(Map<String, dynamic> json) {
-    patientId = json["id"];
-    email = json["email"];
-    name = json["name"];
-    ic = json["ic"];
-    phone = json["phone"];
-    password = json["password"];
-    gender = json["gender"];
-    height = double.parse(json["height"]);
-    weight = double.parse(json["weight"]);
+    patientId = json["id"]?.toInt() ?? 0;
+    email = json["email"] ?? "";
+    name = json["name"] ?? "";
+    ic = json["ic"] ?? "";
+    phone = json["phone"] ?? "";
+    password = json["password"] ?? "";
+    gender = json["gender"] ?? "";
+    height = double.parse(json["height"]?.toString() ?? "0.0");
+    weight = double.parse(json["weight"]?.toString() ?? "0.0");
   }
-
   int get _Id => patientId;
   set _Id(int value) => patientId = value;
 

@@ -1,13 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:ui/sign_up.dart';
 import 'login.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState(){
+
+    //Remove this method to stop OneSignal Debugging
+    OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
+
+    OneSignal.initialize("4844d54d-7798-4bff-bebc-47d4c90ff148");
+
+    // The promptForPushNotificationsWithUserResponse function will
+    // show the iOS or Android push notification prompt. We recommend
+    // removing the following code and instead using an In-App
+    // Message to prompt for notification permission
+    OneSignal.Notifications.requestPermission(true);
+
+  }
 
   // This widget is the root of your application.
   @override

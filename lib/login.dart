@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:ui/forgot_pasword.dart';
 import 'menu_page.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 class Patient {
 
@@ -50,11 +52,15 @@ class _LoginState extends State<Login> {
   TextEditingController passwordController = TextEditingController();
 
   String url = "http://192.168.0.10:8080/pkums/patient/login";
-  //String url = "http://10.0.3.2:8080/pkums/patient/login";
+  //String url = "http://10.131.78.208:8080/pkums/patient/login";
 
   Patient patient = Patient("", "");
 
   Future loginHomepage() async{
+
+
+
+
     var response = await http.post(Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(
@@ -65,7 +71,8 @@ class _LoginState extends State<Login> {
         )
     );
 
-    if(emailController.text.endsWith('@student.utem.edu.my')){
+    if(emailController.text.endsWith('@student.utem.edu.my') ||
+        emailController.text.endsWith('@utem.edu.my') ){
       try{
         if(response.statusCode == 200 ){
           Map<String, dynamic> responseData = json.decode(response.body);
@@ -81,11 +88,22 @@ class _LoginState extends State<Login> {
             toastLength: Toast.LENGTH_LONG,
             fontSize: 16.0,
           );
-          Future.delayed(Duration(seconds: 2), () {
+
+          OneSignal.login(userId.toString());
+
+          Future.delayed(const Duration(seconds: 1), () {
             Navigator.push(context, MaterialPageRoute(builder: (context)=>MenuPage(userId: userId)),
             );
           });
 
+        }else {
+          Fluttertoast.showToast(
+            msg: "Invalid email or password.",
+            backgroundColor: Colors.white,
+            textColor: Colors.red,
+            toastLength: Toast.LENGTH_LONG,
+            fontSize: 16.0,
+          );
         }
       }catch(e){
         print("Error: $e");
@@ -116,7 +134,7 @@ class _LoginState extends State<Login> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Center(
+            const Center(
               child: Column(
                 children: [
                   Center(
@@ -126,7 +144,7 @@ class _LoginState extends State<Login> {
                           fontSize: 40,
                           color:Colors.black),),
                   ),
-                  Text("Sign in to continue",
+                  Text("Welcome back!",
                     style: TextStyle(fontSize: 20),),
                 ],
               ),
@@ -141,12 +159,12 @@ class _LoginState extends State<Login> {
                 controller: emailController,
                 decoration: InputDecoration(
                     border: OutlineInputBorder(
-                      borderSide: BorderSide(
+                      borderSide: const BorderSide(
                           width: 2,color: Colors.deepOrangeAccent
                       ),
                       borderRadius: BorderRadius.circular(50),
                     ),
-                    prefixIcon: Icon(Icons.email_outlined),
+                    prefixIcon: const Icon(Icons.email_outlined),
                     filled: true,
                     fillColor: Colors.white70,
                     hintText: "Enter your email"),
@@ -157,14 +175,14 @@ class _LoginState extends State<Login> {
               child: TextField(
                   controller: passwordController,
                   decoration: InputDecoration(
-                      prefixIcon: Icon(Icons.lock),
+                      prefixIcon: const Icon(Icons.lock),
                       suffixIcon: IconButton(
                         onPressed: togglePassword,
                         icon: Icon(_password ? Icons.visibility
                             : Icons.visibility_off),
                       ),
                       border: OutlineInputBorder(
-                        borderSide: BorderSide(
+                        borderSide: const BorderSide(
                             width: 2,color: Colors.deepOrangeAccent
                         ),
                         borderRadius: BorderRadius.circular(50),
@@ -174,6 +192,15 @@ class _LoginState extends State<Login> {
                       hintText: "Enter your password"),
                   // Hide text when _password is false
                   obscureText: !_password
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder:
+                    (context)=>const ForgotPassword()),);
+              },
+              child: const Text(
+                'Forgot Password?',
               ),
             ),
             SizedBox(
@@ -186,7 +213,7 @@ class _LoginState extends State<Login> {
                 textStyle: const TextStyle(fontSize: 20),),
                   onPressed: (){
                     loginHomepage();
-                  }, child: Text("Login")),
+                  }, child: const Text("Login")),
             ),
             /*Padding(
               padding: const EdgeInsets.all(8.0),

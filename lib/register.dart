@@ -1,4 +1,4 @@
-import 'dart:convert';
+/**import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -94,31 +94,49 @@ class _RegisterPageState extends State<RegisterPage> {
               "ic": icEdittingController.text,
               "phone": phoneEdittingController.text,
               "name": nameEdittingController.text,
-              "gender": genderEdittingController.text,
-              "height": heightEdittingController.text,
-              "weight": weightEdittingController.text,
+              //"gender": genderEdittingController.text,
+              //"height": heightEdittingController.text,
+              //"weight": weightEdittingController.text,
             }
         )
     );
 
-    if(response.body != null){
-
+    if(emailEdittingController.text.endsWith('@student.utem.edu.my') ||
+        emailEdittingController.text.endsWith('@utem.edu.my') ){
+      try{
+        if(response.statusCode == 200){
+          Fluttertoast.showToast(
+            msg: "Successful registered!",
+            backgroundColor: Colors.white,
+            textColor: Colors.red,
+            toastLength: Toast.LENGTH_LONG,
+            fontSize: 16.0,
+          );
+          Future.delayed(Duration(seconds: 1), () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => Login()),
+            );
+          });
+        }
+      }catch(e){
+        print("Error: $e");
+        Fluttertoast.showToast(
+          msg: "An error occurred. Please try again later.",
+          backgroundColor: Colors.white,
+          textColor: Colors.red,
+          toastLength: Toast.LENGTH_LONG,
+          fontSize: 16.0,
+        );
+      }
+    }else {
       Fluttertoast.showToast(
-        msg: "Successful registered! You will be redirected to login",
+        msg: "Invalid email or password.",
         backgroundColor: Colors.white,
         textColor: Colors.red,
         toastLength: Toast.LENGTH_LONG,
         fontSize: 16.0,
       );
-
-      Future.delayed(Duration(seconds: 5), () {
-        Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => Login()),
-        );
-      });
-
     }
-
   }
 
   @override
@@ -290,3 +308,4 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 }
+**/

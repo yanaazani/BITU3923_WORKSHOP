@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:ui/model/appointment_model.dart';
@@ -135,7 +134,7 @@ class _BookingPageState extends State<BookingPage> {
       if (response.statusCode == 200) {
         // Assuming the response body contains the appointment ID
         Map<String, dynamic> responseData = json.decode(response.body);
-        var appointmentId = responseData["id"];
+        int appointmentId = responseData["id"];
         var dateParts = responseData["bookingDate"].split('-');
         var year = int.parse(dateParts[0]);
         var month = dateParts[1].padLeft(2, '0'); // Ensure two digits for month
@@ -151,7 +150,7 @@ class _BookingPageState extends State<BookingPage> {
           MaterialPageRoute(
             builder: (context) => SuccessBookingPage(
               userId: userId,
-              appointmentId: appointmentId.toString(),
+              appointmentId: appointmentId,
               bookingDate: parsedBookingDate,
               bookingTime: bookingTime.toString(),
             ),

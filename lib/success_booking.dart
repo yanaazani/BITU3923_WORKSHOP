@@ -15,7 +15,7 @@ import 'package:path/path.dart';
 
 class SuccessBookingPage extends StatefulWidget {
   final int userId;
-  final String appointmentId;
+  final int appointmentId;
   final DateTime bookingDate;
   final String bookingTime;
 
@@ -104,7 +104,7 @@ class _SuccessBookingPageState extends State<SuccessBookingPage> {
     qrData = createQRData(widget.userId, widget.appointmentId, widget.bookingDate, widget.bookingTime);
   }
 
-  String createQRData(int userId, String appointmentId, DateTime bookingDate, String bookingTime) {
+  String createQRData(int userId, int appointmentId, DateTime bookingDate, String bookingTime) {
     Map<String, dynamic> data = {
       'userId': userId,
       'appointmentId': appointmentId,

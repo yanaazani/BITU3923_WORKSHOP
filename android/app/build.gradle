@@ -52,6 +52,7 @@ android {
     }
 }
 
+
 flutter {
     source '../..'
 }
@@ -60,4 +61,9 @@ android {
     defaultConfig{
         minSdkVersion 21
     }
+
+    android {
+        compileSdkVersion 33
+    }
+
 }

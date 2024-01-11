@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,10 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:ui/menu_page.dart';
 import 'package:ui/model/patient_model.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ui/user_profile.dart';
 
-import 'main.dart';
 
 class ProfilePage extends StatefulWidget {
   final int userId; // Assuming userId is of type int
@@ -47,7 +45,8 @@ class _ProfilePageState extends State<ProfilePage> {
    * based on username passed from Login page
    */
   Future<void> getUser() async {
-    final response = await http.get(Uri.parse('http://192.168.0.10:8080/pkums/patient/details/${widget.userId}'));
+    final response = await http.get(Uri.parse('http:// 192.168.0.10:8080/'
+        'pkums/patient/details/${widget.userId}'));
     if (response.statusCode == 200) {
       // Parse the JSON response into a `Patient` object.
       final patient = Patient.fromJson(jsonDecode(response.body));
@@ -56,22 +55,20 @@ class _ProfilePageState extends State<ProfilePage> {
 
       setState(() {
         _patient = patient;
-        name = patient.name;
-        email = patient.email;
-        password = patient.password;
-        ic = patient.ic;
-        phone = patient.phone;
-        height = parseDouble(patient.height);
-        weight = parseDouble(patient.weight);
-        gender = patient.gender;
+        name = patient.name ?? '';
+        email = patient.email ?? '';
+        password = patient.password ?? '';
+        ic = patient.ic ?? '';
+        phone = patient.phone ?? '';
+        height = patient.height ?? 0.0;
+        weight = patient.weight ?? 0.0;
+        gender = patient.gender ?? '';
 
         nameController.text = patient.name;
         emailController.text = patient.email;
         passwordController.text = patient.password;
         icController.text = patient.ic;
         phoneController.text = patient.phone;
-        //heightController.text = patient.height as String;
-        //weightController.text = patient.weight as String;
         heightController.text = patient.height.toString();
         weightController.text = patient.weight.toString();
         genderController.text = patient.gender;
@@ -94,11 +91,8 @@ class _ProfilePageState extends State<ProfilePage> {
       return 0.0;
     }
   }
-
-  //String imageUrl = "assets/profilepic.png";
-  late Uint8List? _images = Uint8List(0); // Default image URL
-
-
+  late Uint8List? _images = Uint8List(0);
+  String imageUrl = "assets/profilepic.png";
   ImagePicker picker = ImagePicker();
   File? _image;
 
@@ -127,7 +121,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> updatePatient() async{
-
+    uploadImage();
     /**
      * optionally update only the text field is not null
      */
@@ -164,7 +158,8 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     //"http://10.0.3.2:8080/patient/edit/${widget.userId}
-    final response = await http.put(Uri.parse("http://192.168.0.10:8080/pkums/patient/edit/${widget.userId}"),
+    final response = await http.put(Uri.parse("http:// 192.168.0.10:8080/"
+        "pkums/patient/edit/${widget.userId}"),
       headers:{
         "Content-type":"Application/json"
       },
@@ -196,12 +191,80 @@ class _ProfilePageState extends State<ProfilePage> {
       );
     }
   }
+  Future<void> fetchProfileImage() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? server = prefs.getString("localhost");
+    final response = await http.get(Uri.parse(
+        'http://$server:8080/inployed/image/getProfileImage/${(userId: widget.userId)}')
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        _images = response.bodyBytes;
+      });
+    } else {
+      // Handle errors, e.g., display a default image
+      return null;
+    }
+  }
+
+  Future<void> uploadImage() async {
+
+    final prefs = await SharedPreferences.getInstance();
+    String? server = prefs.getString("localhost");
+
+    if (_image == null) {
+      return;
+    }
+
+    final uri = Uri.parse('http://$server:8080/inployed/image'
+        '/updateImage/${(userId: widget.userId)}'); // Replace with your API URL
+    final request = http.MultipartRequest('PUT', uri);
+    request.fields['userId'] = '${(userId: widget.userId)}';// Replace with the user ID
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'image',
+        _image!.path,
+      ),
+    );
+
+    try {
+      final response = await request.send();
+      if (response.statusCode == 200) {
+        Fluttertoast.showToast(
+          msg: 'Image is updated successfully',
+          backgroundColor: Colors.white,
+          textColor: Colors.red,
+          gravity: ToastGravity.CENTER,
+          toastLength: Toast.LENGTH_SHORT,
+          fontSize: 16.0,
+        );
+      } else {
+        Fluttertoast.showToast(
+          msg: 'Image failed to update successfully',
+          backgroundColor: Colors.white,
+          textColor: Colors.red,
+          gravity: ToastGravity.CENTER,
+          toastLength: Toast.LENGTH_SHORT,
+          fontSize: 16.0,
+        );
+      }
+    } catch (e) {
+      print('Error uploading image: $e');
+    }
+  }
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     getUser();
+    fetchProfileImage();
+  }
+  void handleGenderChange(String value) {
+    setState(() {
+      genderController.text = value;
+    });
   }
 
   @override
@@ -240,6 +303,11 @@ class _ProfilePageState extends State<ProfilePage> {
                             ? const DecorationImage(
                             fit: BoxFit.cover,
                             image: AssetImage("assets/profilepic.png")
+                        )
+                        : _image != null
+                            ? DecorationImage(
+                            fit: BoxFit.cover,
+                            image: FileImage(_image!)
                         )
                             : DecorationImage(
                             fit: BoxFit.cover,
@@ -349,7 +417,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 controller: heightController,
                 decoration: const InputDecoration(
                     contentPadding: EdgeInsets.only(bottom: 5),
-                    labelText: "Height", floatingLabelBehavior: FloatingLabelBehavior.always,
+                    labelText: "Height (cm)", floatingLabelBehavior: FloatingLabelBehavior.always,
                     hintText: "",
                     hintStyle: TextStyle(
                         fontSize: 16,
@@ -363,7 +431,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 controller: weightController,
                 decoration: const InputDecoration(
                     contentPadding: EdgeInsets.only(bottom: 5),
-                    labelText: "Weight", floatingLabelBehavior: FloatingLabelBehavior.always,
+                    labelText: "Weight (kg)", floatingLabelBehavior: FloatingLabelBehavior.always,
                     hintText: "",
                     hintStyle: TextStyle(
                         fontSize: 16,
@@ -373,18 +441,29 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
               const SizedBox(height: 30),
-              TextField(
-                controller: genderController,
-                decoration: const InputDecoration(
-                    contentPadding: EdgeInsets.only(bottom: 5),
-                    labelText: "Gender", floatingLabelBehavior: FloatingLabelBehavior.always,
-                    hintText: "",
-                    hintStyle: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey
-                    )
-                ),
+              const Text('Gender', style: TextStyle(
+                  fontSize: 13,
+              ),),
+              Row(
+                children: [
+                  Radio(
+                    value: 'Male',
+                    groupValue: genderController.text,
+                    onChanged: (value) {
+                      handleGenderChange(value as String);
+                    },
+                  ),
+                  const Text('Male'),
+                  Radio(
+                    value: 'Female',
+                    groupValue: genderController.text,
+                    onChanged: (value) {
+                      handleGenderChange(value as String);
+                    },
+                  ),
+                  const Text('Female'),
+
+                ],
               ),
               const SizedBox(height: 30),
               TextField(

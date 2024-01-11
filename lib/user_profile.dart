@@ -42,7 +42,8 @@ class _UserProfileState extends State<UserProfile> {
    * based on username passed from Login page
    */
   Future<void> getUser() async {
-    final response = await http.get(Uri.parse('http://192.168.0.10:8080/pkums/patient/details/${widget.userId}'));
+    final response = await http.get(Uri.parse('http://192.168.0.10:8080/pkums'
+        '/patient/details/${widget.userId}'));
     if (response.statusCode == 200) {
       // Parse the JSON response into a `Patient` object.
       final patient = Patient.fromJson(jsonDecode(response.body));
@@ -51,14 +52,14 @@ class _UserProfileState extends State<UserProfile> {
 
       setState(() {
         _patient = patient;
-        name = patient.name;
-        email = patient.email;
-        password = patient.password;
-        ic = patient.ic;
-        phone = patient.phone;
-        height = parseDouble(patient.height);
-        weight = parseDouble(patient.weight);
-        gender = patient.gender;
+        name = patient.name ?? '';
+        email = patient.email ?? '';
+        password = patient.password ?? '';
+        ic = patient.ic ?? '';
+        phone = patient.phone ?? '';
+        height = patient.height ?? 0.0;
+        weight = patient.weight ?? 0.0;
+        gender = patient.gender ?? '';
 
         nameController.text = patient.name;
         emailController.text = patient.email;

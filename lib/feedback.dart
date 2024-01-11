@@ -49,7 +49,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
       double  efficiencyRating,double personalProfileRating,
       String comment, int patient) async{
 
-    final Uri uri = Uri.parse('http://192.168.0.10:8080/pkums/feedback/add');
+    final Uri uri = Uri.parse('http://1 192.168.0.10:8080/pkums/feedback/add');
     try{
       final response = await http.post(
           uri,
@@ -78,7 +78,8 @@ class _FeedbackPageState extends State<FeedbackPage> {
           fontSize: 16.0,
         );
         Future.delayed(Duration(seconds: 2), () {
-          Navigator.push(context, MaterialPageRoute(builder: (context)=>MenuPage(userId: userId)),
+          Navigator.push(context, MaterialPageRoute(builder:
+              (context)=>MenuPage(userId: userId)),
           );
         });
       } else {
