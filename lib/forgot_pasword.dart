@@ -27,7 +27,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
 
   Future<void> resetPassword(String email) async {
     try {
-      final response = await http.get(Uri.parse('http://192.168.0.10:8080/pkums'
+      final response = await http.get(Uri.parse('http://10.131.75.185:8080/pkums'
           '/patient/email/$email'));
 
       if (response.statusCode == 200) {
@@ -68,7 +68,7 @@ class _ForgotPasswordState extends State<ForgotPassword> {
   Future<void> updatePassword(String email, String newPassword) async{
     try {
       final response = await http.put(
-        Uri.parse('http:// 192.168.0.10:8080/pkums/patient/updatepassword/$email'),
+        Uri.parse('http://10.131.75.185:8080/pkums/patient/updatepassword/$email'),
         body: jsonEncode({'password': newPassword}),
         headers: {'Content-Type': 'application/json'},
       );

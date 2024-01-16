@@ -5,27 +5,24 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:lottie/lottie.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:ui/menu_page.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:flutter/rendering.dart';
-import 'permission.dart';
-import 'package:path/path.dart';
 
 
 class SuccessBookingPage extends StatefulWidget {
-  final int userId;
   final int appointmentId;
   final DateTime bookingDate;
   final String bookingTime;
+  final int userId;
 
   //String qrData = createQRData(userId, appointmentId, bookingDate, bookingTime);
 
   SuccessBookingPage({
-    Key? key, required this.userId,
-    required this.appointmentId,
+    Key? key, required this.appointmentId,
     required this.bookingDate,
-    required this.bookingTime
+    required this.bookingTime,
+    required this.userId
   }) : super(key: key);
 
   @override
@@ -115,6 +112,56 @@ class _SuccessBookingPageState extends State<SuccessBookingPage> {
   }
 
 
+
+  /*Future<void> _captureAndSavePng() async {
+    try {
+      RenderRepaintBoundary boundary =
+      _qrKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      var image = await boundary.toImage(pixelRatio: 3.0);
+
+      // Convert image to bytes
+      ByteData? byteData = await image.toByteData(format: ImageByteFormat.png);
+      Uint8List pngBytes = byteData!.buffer.asUint8List();
+
+
+      //Check external storage directory
+      Directory? directory = await getApplicationDocumentsDirectory();
+      if (directory != null) {
+        String downloadDir = '${directory.path}/Files/Downloads';
+        String externalDir = '$downloadDir/Qr_code';
+
+        // Check if Directory Path exists or not
+        bool dirExists = await Directory(externalDir).exists();
+        // if not then create the path
+        if (!dirExists) {
+          await Directory(externalDir).create(recursive: true);
+        }
+
+        // Save QR code image
+        requestStoragePermission();
+        String fileName = 'qr_code.jpeg';
+        File file = File('$externalDir/$fileName');
+        await file.writeAsBytes(pngBytes);
+
+        if (!mounted) return;
+        const snackBar = SnackBar(content: Text('QR code saved to gallery'));
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        print('Directory path: $externalDir');
+        print('Directory path: $directory');
+      } else {
+        // Handle the case where external storage directory is not available
+        const snackBar = SnackBar(content: Text('External storage not available'));
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      const snackBar = SnackBar(content: Text('Something went wrong!!!'));
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    }
+  }*/
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -137,7 +184,7 @@ class _SuccessBookingPageState extends State<SuccessBookingPage> {
             ),
             const Spacer(),
             // QR Code section with added functionality to save
-            RepaintBoundary(
+            /** RepaintBoundary(
               key: _qrKey,
               child: QrImageView(
                 data: qrData,
@@ -150,7 +197,7 @@ class _SuccessBookingPageState extends State<SuccessBookingPage> {
                 horizontal: 10,
                 vertical: 15,
               ),
-              child: TextButton(
+             child: TextButton(
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.black,
                   backgroundColor: Colors.deepPurple[100],
@@ -160,7 +207,7 @@ class _SuccessBookingPageState extends State<SuccessBookingPage> {
                 onPressed: _captureAndSavePng,
                 child: const Text("Save QR Code"),
               ),
-            ),
+            ),**/
             Padding(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
               child: TextButton(
                   style: TextButton.styleFrom(

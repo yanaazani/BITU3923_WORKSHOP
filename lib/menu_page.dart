@@ -1,20 +1,27 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:ui/booking_appointment_page.dart';
-import 'package:ui/feedback.dart';
 import 'package:ui/main.dart';
+import 'package:ui/review_doctor.dart';
 import 'package:ui/schedule_appointment_page.dart';
 import 'package:ui/user_profile.dart';
+
+import 'package:http/http.dart' as http;
+
+import 'model/doctor_model.dart';
 
 class MenuPage extends StatefulWidget {
   final int userId; // Assuming userId is of type int
   const MenuPage({Key? key, required this.userId}) : super(key: key);
 
   @override
-  State<MenuPage> createState() => _MenuPageState();
+  State<MenuPage> createState() => _MenuPageState(userId: userId);
 }
 
 class _MenuPageState extends State<MenuPage> {
-
+  late final int userId;
+  _MenuPageState({required this.userId});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -51,7 +58,7 @@ class _MenuPageState extends State<MenuPage> {
                   decoration: BoxDecoration(
                     color: Colors.deepPurple[50],
                   ),
-                  child: Text('Hai ${widget.userId}'),
+                  child: Text(''),
                 ),
                 ListTile(
                   title: const Text('Privacy Policy'),
@@ -83,7 +90,7 @@ class _MenuPageState extends State<MenuPage> {
           ),
           body: SingleChildScrollView(
               child: SizedBox(
-                height: 1100, //MediaQuery.of(context).size.height,
+                height: 1250, //MediaQuery.of(context).size.height,
                 child:  MyGridView(userId: widget.userId),
               )
           )
@@ -94,7 +101,8 @@ class _MenuPageState extends State<MenuPage> {
 
 class MyGridView extends StatefulWidget {
   final int userId; // Assuming userId is of type int
-  const MyGridView({super.key, required this.userId});
+  const MyGridView({Key? key, required this.userId}) : super(key: key);
+
 
   @override
   State<MyGridView> createState() => _MyGridViewState();
@@ -102,6 +110,47 @@ class MyGridView extends StatefulWidget {
 
 class _MyGridViewState extends State<MyGridView> {
   get onPressed => null;
+  late Future<List<Doctor>> doctors;
+
+  Future<List<Doctor>> getDoctors() async {
+    final response = await http.get(Uri.parse('http://172.20.10.3:8080'
+        '/pkums/doctor/list'));
+    if (response.statusCode == 200) {
+      // Parse the JSON response into a list of `Doctor` objects.
+      final List<dynamic> doctorList = jsonDecode(response.body);
+      final List<Doctor> doctors = doctorList.map((json) => Doctor.fromJson(json)).toList();
+
+      return doctors;
+    } else {
+      throw Exception('Failed to fetch doctors');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    doctors = getDoctors();
+  }
+
+  Widget buildDoctorsList(List<Doctor>? doctors) {
+    return doctors != null && doctors.isNotEmpty
+        ? ListView.builder(
+        itemCount: doctors.length,
+        itemBuilder: (context, index){
+          //doctors.map((doctor)
+            return DoctorCard(
+              icDoctor: doctors[index].icDoctor ?? 0,
+            firstName: doctors[index].firstName ?? '',
+            lastName: doctors[index].lastName ?? '',
+            email: doctors[index].email ?? '',
+            rating: doctors[index].rating ?? 0,
+            review: doctors[index].review ?? '',
+              userId: widget.userId,
+          );
+        },
+      )
+        : Text('No doctors available');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -201,13 +250,36 @@ class _MyGridViewState extends State<MyGridView> {
             ),
           ],
         ),
-        const Column(
-          children: [
-        DoctorCard(),
-          ],
+        Container(
+          height: 400, // Adjust the height as needed
+          child: FutureBuilder<List<Doctor>>(
+            future: doctors,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return CircularProgressIndicator();
+              } else if (snapshot.hasError) {
+                return Text('Error: ${snapshot.error}');
+              } else {
+                return ListView.builder(
+                  itemCount: snapshot.data!.length,
+                  itemBuilder: (context, index) {
+                    return DoctorCard(
+                      icDoctor: snapshot.data![index].icDoctor,
+                      firstName: snapshot.data![index].firstName,
+                      lastName: snapshot.data![index].lastName,
+                      email: snapshot.data![index].email,
+                      rating: snapshot.data![index].rating,
+                      review: snapshot.data![index].review,
+                      userId: widget.userId,
+                    );
+                  },
+                );
+              }
+            },
+          ),
         ),
-        const Padding(padding: EdgeInsets.all(10),),
-        const Row(
+        Padding(padding: EdgeInsets.all(10),),
+        Row(
           children: [
             Expanded(
               child: Text(
@@ -225,13 +297,13 @@ class _MyGridViewState extends State<MyGridView> {
             ),
           ],
         ),
-        Container(
+         Container(
           height: 400,
           decoration: BoxDecoration(
             color: Colors.deepPurple[50],
             borderRadius: BorderRadius.circular(15.0), // Set the border radius
           ),
-          child: const SingleChildScrollView(
+          child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
@@ -247,8 +319,9 @@ class _MyGridViewState extends State<MyGridView> {
 
     ),
           ),
-      ],
+      ]
     );
+
   }
 }
 Future<void> _showLogoutConfirmationDialog(BuildContext context) async {
@@ -293,11 +366,11 @@ class PictureWidget extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.all(8),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(10.0),
+        borderRadius: BorderRadius.circular(20.0),
         child: Image.asset(
           imagePath,
-          width: 400, // Set the width as needed
-          height: 500, // Set the height as needed
+          width: 350, // Set the width as needed
+          height: 350, // Set the height as needed
           fit: BoxFit.cover, // Adjust the BoxFit property as needed
         ),
       ),
@@ -342,7 +415,8 @@ class ListBarWidget extends StatelessWidget {
   Widget buildListBar(BuildContext context, String announcement, String announcementText) {
     return GestureDetector(
       onTap: () {
-        showAnnouncementBottomSheet(context, announcementText);
+        print('Review button tapped!');
+       showAnnouncementBottomSheet(context, announcementText);
       },
       child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
@@ -649,17 +723,41 @@ class AboutMe extends StatelessWidget {
     );
   }
 }
-
 class DoctorCard extends StatefulWidget {
-  const DoctorCard({super.key});
+  final int icDoctor;
+  final String? firstName;
+  final String? lastName;
+  final String? email;
+  final int? rating;
+  final String? review;
+  final int userId;
+
+  DoctorCard({
+    required this.icDoctor,
+    required this.firstName,
+    required this.lastName,
+    required this.email,
+    required this.rating,
+    required this.review,
+    required this.userId,
+  }) : super(key: ValueKey(userId));
+
 
   @override
   State<DoctorCard> createState() => _DoctorCardState();
 }
 
 class _DoctorCardState extends State<DoctorCard> {
+  Map<int, String> doctorImages = {
+    1: "shiny2.jpg",
+    1234567: "shiny.jpg",
+    9876543: "chaeunwoo.jpg",
+    // Add more mappings as needed
+  };
+
   @override
   Widget build(BuildContext context) {
+    print('Doctor IC: ${widget.icDoctor}');
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       height: 200,
@@ -671,44 +769,74 @@ class _DoctorCardState extends State<DoctorCard> {
             children: [
               SizedBox(
                 width: 100,
-                child: Image.asset('assets/richard.jpg', fit: BoxFit.fill,),
-              ),
-              const Flexible(child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 10,vertical: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Dr Richard', style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),),
-                    Text('Dental', style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),),
-                    Spacer(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Icon(Icons.star, color: Colors.yellow, size: 20,),
-                        Spacer(flex: 1,),
-                        Text('4.5'),
-                        Spacer(flex: 1,),
-                        Text('Reviews'),
-                        Spacer(flex: 1,),
-                        Text('(20)'),
-                        Spacer(flex: 7,),
-                      ],
-                    )
-                  ],
+                child: Image.asset("assets/${doctorImages[widget.icDoctor]}",
+                  fit: BoxFit.fill,
                 ),
-              ))
+              ),
+              Flexible(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${widget.firstName ?? ''} ${widget.lastName ?? ''}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                      Text(
+                        'Dental',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                      Spacer(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Icon(Icons.star, color: Colors.yellow, size: 20),
+                          Spacer(flex: 1),
+                          Text('${widget.rating ?? 0}'),
+                          Spacer(flex: 1),
+                          GestureDetector(
+                            onTap: () {
+                              print('Review button tapped!');
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ReviewPage(
+                                    icDoctor: widget.icDoctor,
+                                    userId: widget.userId,
+                                    doctorFirstName: widget.firstName,
+                                    doctorLastName: widget.lastName,
+                                    doctorEmail: widget.email,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Text(
+                              'Reviews',
+                              style: TextStyle(
+                                color: Colors.blue,
+                                // You can customize the color as needed
+                              ),
+                            ),
+                ),
+                          Spacer(flex: 1),
+                          Spacer(flex: 7),
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+              )
             ],
           ),
         ),
-
       ),
     );
   }
 }
-

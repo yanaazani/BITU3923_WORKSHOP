@@ -44,7 +44,7 @@ class _FeedbackPageState extends State<FeedbackPage> {
     }
   }
 
-  String url = "http://192.168.0.10:8080/pkums/feedback/add";
+  String url = "http:// 192.168.0.10:8080/pkums/feedback/add";
   Future<void> insertFeedback(double loginTroubleRating, double repairQualityRating,
       double  efficiencyRating,double personalProfileRating,
       String comment, int patient) async{

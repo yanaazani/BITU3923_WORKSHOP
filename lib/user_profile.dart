@@ -42,7 +42,7 @@ class _UserProfileState extends State<UserProfile> {
    * based on username passed from Login page
    */
   Future<void> getUser() async {
-    final response = await http.get(Uri.parse('http://192.168.0.10:8080/pkums'
+    final response = await http.get(Uri.parse('http://10.131.75.185:8080/pkums'
         '/patient/details/${widget.userId}'));
     if (response.statusCode == 200) {
       // Parse the JSON response into a `Patient` object.

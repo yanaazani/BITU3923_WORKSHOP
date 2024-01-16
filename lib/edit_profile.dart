@@ -45,7 +45,7 @@ class _ProfilePageState extends State<ProfilePage> {
    * based on username passed from Login page
    */
   Future<void> getUser() async {
-    final response = await http.get(Uri.parse('http:// 192.168.0.10:8080/'
+    final response = await http.get(Uri.parse('http://10.131.75.185:8080/'
         'pkums/patient/details/${widget.userId}'));
     if (response.statusCode == 200) {
       // Parse the JSON response into a `Patient` object.
@@ -158,7 +158,7 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     //"http://10.0.3.2:8080/patient/edit/${widget.userId}
-    final response = await http.put(Uri.parse("http:// 192.168.0.10:8080/"
+    final response = await http.put(Uri.parse("http://10.131.75.185:8080/"
         "pkums/patient/edit/${widget.userId}"),
       headers:{
         "Content-type":"Application/json"

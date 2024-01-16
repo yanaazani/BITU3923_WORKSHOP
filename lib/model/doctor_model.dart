@@ -1,7 +1,8 @@
-/** import 'package:ui/model/patient_model.dart';
+import 'package:ui/model/patient_model.dart';
 
 class Doctor {
 
+  int icDoctor = 0;
   String firstName = "";
   String lastName = "";
   String email ="";
@@ -10,6 +11,7 @@ class Doctor {
   Patient patient;
 
   Doctor({
+    required this.icDoctor,
     required this.firstName,
     required this.lastName,
     required this.email,
@@ -17,6 +19,10 @@ class Doctor {
     required this.review,
     required this.patient,
   });
+
+
+  int get _icDoctor => icDoctor;
+  set _icDoctor(int value) => icDoctor = value;
 
   String get _firstName => firstName;
   set _firstName(String value) => firstName = value;
@@ -40,24 +46,17 @@ class Doctor {
   set _patient(Patient value) => patient = value;
 
 
-  Doctor.fromJson(Map<String, dynamic> json)
-      :
-        firstName = json['firstName'],
-        lastName = json['lastName'],
-        email = json['email'],
-        rating = json['rating'],
-        review = json['review'],
-        patient = Patient.fromJson(json["patientId"]),
-
-  Map<String, dynamic> toJson() {
-    return {
-      'firstName': firstName,
-      'lastName': lastName,
-      'email': email,
-      'rating': rating,
-      'review': review,
-      'patientId': patient.toJson(),
-    };
+  factory Doctor.fromJson(Map<String, dynamic> json) {
+    return Doctor(
+      icDoctor: json['icDoctor'] ?? 0,
+      firstName: json['firstName'] ?? '',
+      lastName: json['lastName'] ?? '',
+      email: json['email'] ?? '',
+      rating: json['rating'] ?? 0,
+      review: json['review'] ?? '',
+      patient: Patient.fromJson(json['patientId'] ?? {}),
+    );
   }
+
 }
-    **/
+

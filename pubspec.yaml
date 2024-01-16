@@ -93,6 +93,10 @@ flutter:
     - assets/tindakanselepabanjir.jpg
     - assets/eatwell.jpg
     - assets/musimpanas.jpg
+    - assets/feedback.jpg
+    - assets/chaeunwoo.jpg
+    - assets/shiny.jpg
+    - assets/shiny2.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

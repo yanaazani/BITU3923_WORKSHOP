@@ -38,7 +38,7 @@ class _BookingPageState extends State<BookingPage> {
 
   String _selectedServiceType = 'Regular Checkup'; // Default selected service type
 
-  List<String> _serviceType = ['Regular Checkup', 'Dental Checkup'];
+  List<String> _serviceType = ['Regular Checkup', ''];
 
 
   /**
@@ -62,7 +62,7 @@ class _BookingPageState extends State<BookingPage> {
 
   Future<void> validateAppointment(String date, String time, String status,
       String serviceType, int patient, int room) async {
-    final response = await http.get(Uri.parse('http://192.168.0.10:8080/pkums'
+    final response = await http.get(Uri.parse('http://10.131.75.185:8080/pkums'
         '/appointment/getappointment/$date/$time'));
 
     if (response.statusCode == 200) {
@@ -105,7 +105,7 @@ class _BookingPageState extends State<BookingPage> {
 
   Future<void> insertAppointment(String? bookingDate, String? bookingTime,
       String? status, String? serviceType, int? patient, int? room) async {
-    final Uri uri = Uri.parse('http://192.168.0.10:8080/pkums/appointment/insertappointment');
+    final Uri uri = Uri.parse('http://10.131.75.185:8080/pkums/appointment/insertappointment');
 
     try {
       final response = await http.post(
