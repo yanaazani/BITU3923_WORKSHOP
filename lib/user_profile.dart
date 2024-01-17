@@ -49,6 +49,7 @@ class _UserProfileState extends State<UserProfile> {
       // Parse the JSON response into a `Patient` object.
       final patient = Patient.fromJson(jsonDecode(response.body));
 
+
       print(response.body);
 
       setState(() {
@@ -96,9 +97,10 @@ class _UserProfileState extends State<UserProfile> {
   String imageUrl = "assets/profilepic.png";
   ImagePicker picker = ImagePicker();
   File? _image;
-  Future<void> fetchProfileImage() async {
+
+  Future<void> fetchProfileImage(int userid) async {
     final response = await http.get(Uri.parse(
-        'http://10.131.75.185:8080/pkums/image/getProfileImage/${(widget.userId)}')
+        'http://10.131.75.185:8080/pkums/image/getProfileImage/${userid}')
     );
 
     if (response.statusCode == 200) {
@@ -111,12 +113,15 @@ class _UserProfileState extends State<UserProfile> {
     }
   }
 
+
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     getUser();
-    fetchProfileImage();
+    fetchProfileImage(widget.userId);
+    print(widget.userId);
   }
 
   @override
@@ -161,7 +166,7 @@ class _UserProfileState extends State<UserProfile> {
                   ),
                 ),
             Container(
-              width: 130, height: 130, decoration: BoxDecoration(
+              width: 100, height: 100, decoration: BoxDecoration(
                 border: Border.all(width: 4, color: Colors.white),
                 boxShadow: [
                   BoxShadow(
@@ -169,19 +174,14 @@ class _UserProfileState extends State<UserProfile> {
                   ),
                 ],
                 shape: BoxShape.circle,
-                image: _image == null
-                    ? const DecorationImage(
-                    fit: BoxFit.cover,
-                    image: AssetImage("assets/profilepic.png")
-                )
-                    : _image != null
+                image: _images != null
                     ? DecorationImage(
                     fit: BoxFit.cover,
-                    image: FileImage(_image!)
+                    image: MemoryImage(_images!)
                 )
                     : DecorationImage(
                     fit: BoxFit.cover,
-                    image: FileImage(_image!)
+                    image: AssetImage(imageUrl)
                 )
             ),
             ),

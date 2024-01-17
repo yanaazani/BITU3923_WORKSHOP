@@ -12,7 +12,7 @@ import 'package:http/http.dart' as http;
 
 
 class ProfilePage extends StatefulWidget {
-  final int userId; // Assuming userId is of type int
+  final int userId;
   const ProfilePage({Key? key, required this.userId}) : super(key: key);
 
   @override
@@ -92,8 +92,7 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  late Uint8List? _images = Uint8List(0);
-  String imageUrl = "assets/profilepic.png";
+
   ImagePicker picker = ImagePicker();
   File? _image;
 
@@ -193,9 +192,12 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  String imageUrl = "assets/profilepic.png";
+  late Uint8List? _images = Uint8List(0); // Default image URL
   Future<void> fetchProfileImage() async {
+
     final response = await http.get(Uri.parse(
-        'http://10.131.75.185:8080/pkums/image/getProfileImage/${(widget.userId)}')
+        'http://10.131.75.185:8080/pkums/image/getProfileImage/${widget.userId}')
     );
 
     if (response.statusCode == 200) {
@@ -213,9 +215,9 @@ class _ProfilePageState extends State<ProfilePage> {
       return;
     }
     final uri = Uri.parse('http://10.131.75.185:8080/pkums/'
-        'image/uploadSingleImage/${(widget.userId)}');
+        'image/uploadSingleImage/${widget.userId}');
     final request = http.MultipartRequest('POST', uri);
-    request.fields['userId'] = '${(widget.userId)}';
+    request.fields['userId'] = '${widget.userId}';
     request.files.add(
       await http.MultipartFile.fromPath(
         'image',
@@ -286,7 +288,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: Stack(
                   children: [
                     Container(
-                      width: 130, height: 130, decoration: BoxDecoration(
+                      width: 100, height: 100, decoration: BoxDecoration(
                         border: Border.all(width: 4, color: Colors.white),
                         boxShadow: [
                           BoxShadow(
@@ -294,19 +296,14 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ],
                         shape: BoxShape.circle,
-                        image: _image == null
-                            ? const DecorationImage(
-                            fit: BoxFit.cover,
-                            image: AssetImage("assets/profilepic.png")
-                        )
-                        : _image != null
+                        image: _images != null
                             ? DecorationImage(
                             fit: BoxFit.cover,
-                            image: FileImage(_image!)
+                            image: MemoryImage(_images!)
                         )
                             : DecorationImage(
                             fit: BoxFit.cover,
-                            image: FileImage(_image!)
+                            image: AssetImage(imageUrl)
                         )
                     ),
                     ),
