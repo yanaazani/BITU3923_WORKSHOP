@@ -72,7 +72,7 @@ class _LoginState extends State<Login> {
       try{
         if(response.statusCode == 200 ){
           Map<String, dynamic> responseData = json.decode(response.body);
-          int userId = responseData["id"] as int;
+          var userId = responseData["id"];
           String userName = responseData["name"] as String;
           print("This is username: $userName");
           print("This is user id: $userId");

@@ -23,8 +23,7 @@ class _MyAppState extends State<MyApp> {
 
     // Remove this method to stop OneSignal Debugging
     OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
-
-    OneSignal.initialize("3f32bf80-053a-4661-9e26-b37ccf08f370");
+    OneSignal.initialize("4844d54d-7798-4bff-bebc-47d4c90ff148");
 
     // The promptForPushNotificationsWithUserResponse function will show the iOS or Android push notification prompt.
     // We recommend removing the following code and instead using an In-App Message to prompt for notification permission

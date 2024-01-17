@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:http/http.dart' as http;
+import 'package:ui/OneSignalController.dart';
 import 'package:ui/model/appointment_model.dart';
 import 'success_booking.dart';
 
@@ -75,6 +76,7 @@ class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
     super.initState();
     userId = widget.userId;
     status = status_bar;
+    print(userId);
     appointmentsFuture = getAppointmentsByStatusAndUser(status_bar.toString().split('.').last);
     //getAppointmentsByStatusAndUser(status_bar.toString().split('.').last);
   }
@@ -299,6 +301,10 @@ class _AppointmentCardState extends State<AppointmentCard> {
             if (isPending == true)
               ElevatedButton(
                 onPressed: () {
+                  OneSignalController notify = OneSignalController();
+                  List<String> targetUser = [];
+                  targetUser.add(widget.userId.toString());
+                  notify.sendNotification("Check In", "Check In successfully", targetUser);
 
                   //Navigator.push(context, MaterialPageRoute(builder: (Context) => SuccessBookingPage(appointment.appointmentId, appointment.bookingDate, appointmnet.bookingTime.toString(), userId)));
                   Navigator.push(

@@ -6,6 +6,8 @@ import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ui/success_booking_appointment.dart';
 
+import 'OneSignalController.dart';
+
 class BookingPage extends StatefulWidget {
   final int userId;
   BookingPage({Key? key, required this.userId,}) : super(key: key);
@@ -193,6 +195,13 @@ class _BookingPageState extends State<BookingPage> {
     }
   }
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    print(widget.userId);
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -329,6 +338,13 @@ class _BookingPageState extends State<BookingPage> {
                     padding: const EdgeInsets.all(10.0),
                     textStyle: const TextStyle(fontSize: 20),),
                   onPressed: () async {
+
+                    OneSignalController notify = OneSignalController();
+                    List<String> targetUser = [widget.userId.toString()];
+                    notify.sendNotification("Booking Appointment",
+                        "Your booking appointment has successfully booked", targetUser);
+
+
                     if (_dateSelected && _timeSelected) {
                       int? currentHour;
                       currentHour = _currentIndex ?? 0;
