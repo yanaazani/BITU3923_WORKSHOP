@@ -91,6 +91,7 @@ class _ProfilePageState extends State<ProfilePage> {
       return 0.0;
     }
   }
+
   late Uint8List? _images = Uint8List(0);
   String imageUrl = "assets/profilepic.png";
   ImagePicker picker = ImagePicker();
@@ -191,11 +192,10 @@ class _ProfilePageState extends State<ProfilePage> {
       );
     }
   }
+
   Future<void> fetchProfileImage() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? server = prefs.getString("localhost");
     final response = await http.get(Uri.parse(
-        'http://$server:8080/inployed/image/getProfileImage/${(userId: widget.userId)}')
+        'http://10.131.75.185:8080/pkums/image/getProfileImage/${(widget.userId)}')
     );
 
     if (response.statusCode == 200) {
@@ -209,18 +209,13 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> uploadImage() async {
-
-    final prefs = await SharedPreferences.getInstance();
-    String? server = prefs.getString("localhost");
-
     if (_image == null) {
       return;
     }
-
-    final uri = Uri.parse('http://$server:8080/inployed/image'
-        '/updateImage/${(userId: widget.userId)}'); // Replace with your API URL
-    final request = http.MultipartRequest('PUT', uri);
-    request.fields['userId'] = '${(userId: widget.userId)}';// Replace with the user ID
+    final uri = Uri.parse('http://10.131.75.185:8080/pkums/'
+        'image/uploadSingleImage/${(widget.userId)}');
+    final request = http.MultipartRequest('POST', uri);
+    request.fields['userId'] = '${(widget.userId)}';
     request.files.add(
       await http.MultipartFile.fromPath(
         'image',

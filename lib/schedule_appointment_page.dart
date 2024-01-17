@@ -137,6 +137,7 @@ class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
             appointment: appointment,
             userId: userId,
             rateAppointment: rateAppointment,
+            status: status_bar
           );
         } else {
           return SizedBox(); // Return an empty container if not meeting the condition
@@ -151,7 +152,9 @@ class AppointmentCard extends StatefulWidget {
   late final int userId;
   final Appointment appointment;
   final Function(int, int) rateAppointment;
+  final FilterStatus status;
   AppointmentCard({Key? key, required this.appointment, required this.userId,
+    required this.status,
     required this.rateAppointment}) : super(key: key);
 
   @override
@@ -306,6 +309,7 @@ class _AppointmentCardState extends State<AppointmentCard> {
                         bookingDate: bookingDateTime,
                         bookingTime: widget.appointment.bookingTime.toString(),
                         userId: widget.userId,
+                        status: widget.status.toString().split('.').last,
                       ),
                     ),
                   );

@@ -1,9 +1,10 @@
 import 'dart:convert';
-
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:ui/model/patient_model.dart';
 import 'package:http/http.dart' as http;
-
 import 'edit_profile.dart';
 import 'main.dart';
 import 'menu_page.dart';
@@ -91,11 +92,31 @@ class _UserProfileState extends State<UserProfile> {
     }
   }
 
+  late Uint8List? _images = Uint8List(0);
+  String imageUrl = "assets/profilepic.png";
+  ImagePicker picker = ImagePicker();
+  File? _image;
+  Future<void> fetchProfileImage() async {
+    final response = await http.get(Uri.parse(
+        'http://10.131.75.185:8080/pkums/image/getProfileImage/${(widget.userId)}')
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        _images = response.bodyBytes;
+      });
+    } else {
+      // Handle errors, e.g., display a default image
+      return null;
+    }
+  }
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     getUser();
+    fetchProfileImage();
   }
 
   @override
@@ -144,16 +165,24 @@ class _UserProfileState extends State<UserProfile> {
                 border: Border.all(width: 4, color: Colors.white),
                 boxShadow: [
                   BoxShadow(
-                      spreadRadius: 2,
-                      blurRadius: 10,
-                      color: Colors.black.withOpacity(0.1)
+                      spreadRadius: 2, blurRadius: 10, color: Colors.black.withOpacity(0.1)
                   ),
                 ],
                 shape: BoxShape.circle,
-                image: const DecorationImage(
-                fit: BoxFit.cover,
-                image: AssetImage("assets/profilepic.png")
-            )
+                image: _image == null
+                    ? const DecorationImage(
+                    fit: BoxFit.cover,
+                    image: AssetImage("assets/profilepic.png")
+                )
+                    : _image != null
+                    ? DecorationImage(
+                    fit: BoxFit.cover,
+                    image: FileImage(_image!)
+                )
+                    : DecorationImage(
+                    fit: BoxFit.cover,
+                    image: FileImage(_image!)
+                )
             ),
             ),
             const SizedBox(height: 30),

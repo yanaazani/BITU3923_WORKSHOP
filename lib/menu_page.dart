@@ -796,11 +796,12 @@ class _DoctorCardState extends State<DoctorCard> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
+                          Text('Rate: '),
                           Icon(Icons.star, color: Colors.yellow, size: 20),
                           Spacer(flex: 1),
                           Text('${widget.rating ?? 0}'),
                           Spacer(flex: 1),
-                          GestureDetector(
+                         /** GestureDetector(
                             onTap: () {
                               print('Review button tapped!');
                               Navigator.push(
@@ -823,7 +824,7 @@ class _DoctorCardState extends State<DoctorCard> {
                                 // You can customize the color as needed
                               ),
                             ),
-                ),
+                ),**/
                           Spacer(flex: 1),
                           Spacer(flex: 7),
                         ],

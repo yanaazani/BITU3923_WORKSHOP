@@ -2,14 +2,13 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:ui/model/appointment_model.dart';
-import 'package:ui/success_booking.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ui/success_booking_appointment.dart';
 
 class BookingPage extends StatefulWidget {
   final int userId;
-  BookingPage({Key? key, required this.userId}) : super(key: key);
+  BookingPage({Key? key, required this.userId,}) : super(key: key);
 
   @override
   State<BookingPage> createState() => _BookingPageState(userId: userId);
@@ -19,13 +18,6 @@ class BookingPage extends StatefulWidget {
 class _BookingPageState extends State<BookingPage> {
   late final int userId;
   _BookingPageState({required this.userId});
-
-  /*Appointment newAppointment = Appointment(
-      appointmentId: 0, dateSelect, bookingTime: timeSelect,
-      status: "Pending", serviceType: _selectedServiceType,
-      patient: Patient(1, "", "", "", "", "", "", 0.0, 0.0),
-      room: Room(null, number)
-  );*/
 
 
 
@@ -39,7 +31,7 @@ class _BookingPageState extends State<BookingPage> {
 
   String _selectedServiceType = 'Regular Checkup'; // Default selected service type
 
-  List<String> _serviceType = ['Regular Checkup', ''];
+  //List<String> _serviceType = ['Regular Checkup', 'Dental Checkup'];
 
 
   /**
@@ -63,16 +55,15 @@ class _BookingPageState extends State<BookingPage> {
 
   Future<void> validateAppointment(String date, String time, String status,
       String serviceType, int patient, int room) async {
-    final response = await http.get(Uri.parse('http://10.131.75.185:8080/pkums'
-        '/appointment/getappointment/$date/$time'));
+    final response = await http.get(Uri.parse(
+      'http://10.131.75.185:8080/pkums/appointment/getappointment/$date/$time',
+    ));
 
     if (response.statusCode == 200) {
       List<dynamic> data = jsonDecode(response.body);
       setState(() {
         specificAppointment = data.map((json) =>
             Appointment.fromJson(json)).toList();
-        print("Number of appointments based on the list: "
-            "${data.length}");
       });
 
       if (specificAppointment.length >= 3) {
@@ -84,16 +75,53 @@ class _BookingPageState extends State<BookingPage> {
           toastLength: Toast.LENGTH_SHORT,
           fontSize: 16.0,
         );
-      }
-      else {
-        insertAppointment(date, time, status,
-            serviceType, patient, room);
-      }
+      } else {
+        bool isAM = int.parse(time.split(':')[0]) < 12;
+        //String likePM = "PM";
 
+        final responseAM = await http.get(Uri.parse(
+          'http://10.131.75.185:8080/pkums/appointment/validateappointmentAM/patient/$patient/$date',
+        ));
+
+        final responsePM = await http.get(Uri.parse(
+          'http://10.131.75.185:8080/pkums/appointment/validateappointmentPM/patient/$patient/$date',
+        ));
+
+        print(responseAM.body);
+        print(responsePM.body);
+        print(isAM);
+
+        if (isAM) {
+          if (responseAM.statusCode == 200 && jsonDecode(responseAM.body).isNotEmpty) {
+            Fluttertoast.showToast(
+              msg: 'Cannot book AM slot on $date as it already exists!',
+              backgroundColor: Colors.white,
+              textColor: Colors.red,
+              gravity: ToastGravity.CENTER,
+              toastLength: Toast.LENGTH_SHORT,
+              fontSize: 16.0,
+            );
+          } else {
+            insertAppointment(date, time, status, serviceType, patient, room);
+          }
+        } else {
+          if (responsePM.statusCode == 200 && jsonDecode(responsePM.body).isNotEmpty) {
+            Fluttertoast.showToast(
+              msg: 'Cannot book PM slot on $date as it already exists!',
+              backgroundColor: Colors.white,
+              textColor: Colors.red,
+              gravity: ToastGravity.CENTER,
+              toastLength: Toast.LENGTH_SHORT,
+              fontSize: 16.0,
+            );
+          } else {
+            insertAppointment(date, time, status, serviceType, patient, room);
+          }
+        }
+      }
     } else {
       throw Exception('Failed to fetch job');
     }
-
   }
 
 
@@ -179,37 +207,37 @@ class _BookingPageState extends State<BookingPage> {
           SliverToBoxAdapter(
             child: Column(
               children: <Widget>[
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  child: Text(
-                    "Select Service Type",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(bottom: 25),
-                  child: DropdownButton<String>(
-                    value: _selectedServiceType,
-                    icon: Icon(Icons.arrow_downward),
-                    iconSize: 24,
-                    elevation: 16,
-                    style: TextStyle(color: Colors.deepPurple),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedServiceType = newValue ?? '';
-                      });
-                    },
-                    items: _serviceType.map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                  ),
-                ),
+                // const Padding(
+                //   padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                //   child: Text(
+                //     "Select Service Type",
+                //     style: TextStyle(
+                //       fontSize: 20,
+                //       fontWeight: FontWeight.bold,
+                //     ),
+                //   ),
+                // ),
+                // Padding(
+                //   padding: EdgeInsets.only(bottom: 25),
+                //   child: DropdownButton<String>(
+                //     value: _selectedServiceType,
+                //     icon: Icon(Icons.arrow_downward),
+                //     iconSize: 24,
+                //     elevation: 16,
+                //     style: TextStyle(color: Colors.deepPurple),
+                //     onChanged: (String? newValue) {
+                //       setState(() {
+                //         _selectedServiceType = newValue ?? '';
+                //       });
+                //     },
+                //     items: _serviceType.map<DropdownMenuItem<String>>((String value) {
+                //       return DropdownMenuItem<String>(
+                //         value: value,
+                //         child: Text(value),
+                //       );
+                //     }).toList(),
+                //   ),
+                // ),
                 const Padding(
                   padding: EdgeInsets.symmetric(
                       horizontal: 10,
@@ -273,8 +301,10 @@ class _BookingPageState extends State<BookingPage> {
                         : null,
                   ),
                   alignment: Alignment.center,
-                  child: Text(
-                    '${index + 9}:00 ${index + 9 > 11 ? "PM" : "AM"}',
+                  child: /*Text(
+                    '${index + 9}:00 ${index + 9 > 11 ? "PM" : "AM"}',*/
+                  Text(
+                    '${(index + 9).toString().padLeft(2, '0')}:00 ${index + 9 > 11 ? "PM" : "AM"}',
                     style: TextStyle(
                       fontWeight: FontWeight.bold ,
                       fontSize: 15,
@@ -315,16 +345,14 @@ class _BookingPageState extends State<BookingPage> {
                       // date: 2023-12-5 -> day: 5 < 10 -> display: 2023-12-05 (not 2023-12-5)
                       // date: 2023-12-15 -> day: 15 > 10 -> display: 2023-12-15
 
-                      String dateSelect = "${_currentDay.year}-${_currentDay
-                          .month}"
-                          "-${_currentDay.day < 10
-                          ? '0${_currentDay.day}'
-                          : '${_currentDay.day}'}";
+                      String dateSelect = "${_currentDay.year}-${_currentDay.month}"
+                          "-${_currentDay.day.toString().padLeft(2, '0')}";
 
                       // time: 1.00 -> 1+9 = 10 <= 11 -> display as: 10.00AM
                       // time: 4.00 -> 4+9 = 13 > 11 -> display as: 13.00PM
-                      String timeSelect = "${currentHour + 9}:00${currentHour +
+                      String timeSelect = "${(currentHour + 9).toString().padLeft(2, '0')}:00${currentHour +
                           9 > 11 ? "PM" : "AM"}";
+
 
                       print("Selected date: $dateSelect");
                       print("Selected time: $timeSelect");

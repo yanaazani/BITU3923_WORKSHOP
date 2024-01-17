@@ -1,122 +1,112 @@
 import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:qrscan2/qrscan2.dart' as scanner;
-import 'package:image_picker/image_picker.dart';
+import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:ui/success_checkin.dart';
+import 'package:vibration/vibration.dart';
+
+import 'fail_checkin.dart';
 
 class QRScannerPage extends StatefulWidget {
-  final int validateappointmentId;
-  QRScannerPage({Key? key, required this.validateappointmentId}) : super(key: key);
+  QRScannerPage({Key? key}) : super(key: key);
 
   @override
-  _QRScannerPageState createState() => _QRScannerPageState(
-      validateappointmentId: validateappointmentId);
+  _QRScannerPageState createState() => _QRScannerPageState();
 }
 
 class _QRScannerPageState extends State<QRScannerPage> {
-
-  late final int validateappointmentId;
-  _QRScannerPageState({required this.validateappointmentId});
-
   String? result;
-  final ImagePicker _picker = ImagePicker();
+  bool isProcessing = false;
+  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  late QRViewController controller;
 
-  Future<void> _scanQRCodeFromGallery() async {
-    final XFile? pickedFile = await _picker.pickImage(
-        source: ImageSource.gallery);
-    if (pickedFile != null) {
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  void _onQRViewCreated(QRViewController controller) {
+    this.controller = controller;
+    controller.scannedDataStream.listen((scanData) async {
       try {
-        final File imageFile = File(pickedFile.path);
-        final List<int> bytes = await imageFile.readAsBytes();
-        final Uint8List uint8List = Uint8List.fromList(bytes);
-        final String data = await scanner.scanBytes(uint8List);
+        if (!isProcessing) {
+          setState(() {
+            isProcessing = true;
+          });
 
-        // Extract JSON data from QR code
-        Map<String, dynamic> jsonData = json.decode(data);
+          Map<String, dynamic> jsonData = {};
 
-        // Validate data against backend
-        bool isValid = await _validateQRData(jsonData);
+          if (scanData.code != null) {
+            try {
+              jsonData = json.decode(scanData.code!);
+            } catch (e) {
+              print('Error decoding QR code content: $e');
+            }
+          }
 
-        if (isValid) {
-          // Update the appointment status if validation succeeds
-          await _updateAppointment(jsonData);
+          bool isValid = await _validateQRData(jsonData);
+
+          if (isValid) {
+            await _updateAppointment(jsonData);
+            _navigateToSuccessPage();
+          } else {
+            _navigateToErrorPage();
+          }
+
+          Vibration.vibrate(duration: 500);
+
+          setState(() {
+            result = isValid ? 'Valid QR Code' : 'Invalid QR Code';
+            isProcessing = false;
+          });
         }
-
-        setState(() {
-          result = isValid ? 'Valid QR Code' : 'Invalid QR Code';
-        });
       } catch (e) {
-        print('Error scanning QR code from image: $e');
+        print('Error scanning QR code: $e');
         setState(() {
           result = null;
+          isProcessing = false;
         });
       }
-    }
+    });
   }
 
   Future<bool> _validateQRData(Map<String, dynamic> data) async {
-    try {
-      // Prepare the API endpoint and request
-      int appointmentId = data['appointmentId'];
-      String date = data['bookingDate'];
-      String time = data['bookingTime'];
-      String status = data['status'];
-      int patientId = data['patientId'];
+    int appointmentId = data['appointmentId'];
+    String date = data['bookingDate'];
+    String time = data['bookingTime'];
+    String status = data['status'];
+    int userId = data['userId'];
 
-      print('This is appointmentidpressed:$validateappointmentId');
-      print('This is: $appointmentId, $date, $time, $status, $patientId');
+    String apiUrl =
+        'http://10.131.75.185:8080/pkums/appointment/validateappointment'
+        '/$appointmentId/$date/$time/$status/patient/$userId';
 
-      if (widget.validateappointmentId == appointmentId) {
-        String apiUrl = 'http://10.131.73.214:8080/pkums/appointment/'
-            'validateappointment/$appointmentId/$date/$time/$status/'
-            'patient/$patientId';
+    http.Response response = await http.get(Uri.parse(apiUrl));
 
-        // Make the API call to validate the data
-        http.Response response = await http.get(Uri.parse(apiUrl));
-
-        // Check the response status and return validation result
-        if (response.statusCode == 200) {
-          print(response.body);
-          if (response.body != null) {
-            final jsonResponse = json.decode(response.body);
-            if (jsonResponse != null && jsonResponse.isNotEmpty) {
-              await _updateAppointment(
-                  data); // Update appointment if validation succeeds
-              return true;
-            } else {
-              print('ayoo null maa'); // Print statement added
-              return false; // Body is empty or not valid, validation failed
-            }
-          } else {
-            print('Response body is null');
-            return false; // Body is null, validation failed
-          }
+    if (response.statusCode == 200) {
+      if (response.body != null) {
+        final jsonResponse = json.decode(response.body);
+        if (jsonResponse != null && jsonResponse.isNotEmpty) {
+          await _updateAppointment(data);
+          return true;
         } else {
-          throw Exception('The appointment is not in the database');
+          return false;
         }
       } else {
-        print('Error: Appointment ID does not match');
-        return false; // Appointment ID mismatch, validation failed
+        return false;
       }
-    }
-    catch
-    (e) {
-      print('Error validating QR data: $e');
-      return false; // Validation failed
+    } else {
+      throw Exception('The appointment is not in the database');
     }
   }
 
   Future<void> _updateAppointment(Map<String, dynamic> data) async {
     int appointmentId = data['appointmentId'];
     String newStatus = 'Waiting';
+    String apiUrl =
+        'http://10.131.75.185:8080/pkums/appointment/updateappointment/$appointmentId';
 
-    // Prepare the API endpoint and request
-    String apiUrl = 'http://10.131.73.214:8080/pkums/appointment'
-        '/updateappointment/$appointmentId';
-
-    // Make the API call to update the appointment status
     http.Response response = await http.put(
       Uri.parse(apiUrl),
       headers: <String, String>{
@@ -125,12 +115,23 @@ class _QRScannerPageState extends State<QRScannerPage> {
       body: jsonEncode({'status': newStatus}),
     );
 
-    // Check the response status and handle accordingly
-    if (response.statusCode == 200) {
-      print('Appointment updated successfully');
-    } else {
+    if (response.statusCode != 200) {
       print('Error updating appointment');
     }
+  }
+
+  void _navigateToSuccessPage() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => SuccessPage()),
+    );
+  }
+
+  void _navigateToErrorPage() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => ErrorPage()),
+    );
   }
 
   @override
@@ -143,19 +144,22 @@ class _QRScannerPageState extends State<QRScannerPage> {
         children: <Widget>[
           Expanded(
             flex: 5,
-            child: Center(
-              child: ElevatedButton(
-                onPressed: _scanQRCodeFromGallery,
-                child: Text('Pick QR Code from Gallery'),
+            child: QRView(
+              key: qrKey,
+              onQRViewCreated: _onQRViewCreated,
+              overlay: QrScannerOverlayShape(
+                borderColor: Colors.red,
+                borderRadius: 10,
+                borderLength: 30,
+                borderWidth: 10,
+                cutOutSize: 300,
               ),
             ),
           ),
           Expanded(
             flex: 1,
             child: Center(
-              child: (result != null)
-                  ? Text('Scanned Data: $result')
-                  : Text(''),
+              child: (result != null) ? Text('Scanned Data: $result') : Text(''),
             ),
           ),
         ],
