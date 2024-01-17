@@ -34,7 +34,7 @@ class _ReviewPageState extends State<ReviewPage> {
   Future<void> insertFeedback(double rating, String review,
       int patient, int icDoctor) async{
 
-    final Uri uri = Uri.parse('http://172.20.10.3:8080/pkums/'
+    final Uri uri = Uri.parse('http://10.131.75.185:8080/pkums/'
         'feedbackdoctor/insert');
     try{
       final response = await http.post(

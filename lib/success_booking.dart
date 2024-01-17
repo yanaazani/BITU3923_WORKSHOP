@@ -16,13 +16,11 @@ class SuccessBookingPage extends StatefulWidget {
   final String bookingTime;
   final int userId;
 
-  //String qrData = createQRData(userId, appointmentId, bookingDate, bookingTime);
-
   SuccessBookingPage({
     Key? key, required this.appointmentId,
     required this.bookingDate,
     required this.bookingTime,
-    required this.userId
+    required this.userId,
   }) : super(key: key);
 
   @override
@@ -103,64 +101,14 @@ class _SuccessBookingPageState extends State<SuccessBookingPage> {
 
   String createQRData(int userId, int appointmentId, DateTime bookingDate, String bookingTime) {
     Map<String, dynamic> data = {
-      'userId': userId,
       'appointmentId': appointmentId,
       'bookingDate': "${bookingDate.year}-${bookingDate.month}-${bookingDate.day}",
-      'bookingTime': bookingTime
+      'bookingTime': bookingTime,
+      'userId': userId,
+
     };
     return jsonEncode(data);
   }
-
-
-
-  /*Future<void> _captureAndSavePng() async {
-    try {
-      RenderRepaintBoundary boundary =
-      _qrKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-      var image = await boundary.toImage(pixelRatio: 3.0);
-
-      // Convert image to bytes
-      ByteData? byteData = await image.toByteData(format: ImageByteFormat.png);
-      Uint8List pngBytes = byteData!.buffer.asUint8List();
-
-
-      //Check external storage directory
-      Directory? directory = await getApplicationDocumentsDirectory();
-      if (directory != null) {
-        String downloadDir = '${directory.path}/Files/Downloads';
-        String externalDir = '$downloadDir/Qr_code';
-
-        // Check if Directory Path exists or not
-        bool dirExists = await Directory(externalDir).exists();
-        // if not then create the path
-        if (!dirExists) {
-          await Directory(externalDir).create(recursive: true);
-        }
-
-        // Save QR code image
-        requestStoragePermission();
-        String fileName = 'qr_code.jpeg';
-        File file = File('$externalDir/$fileName');
-        await file.writeAsBytes(pngBytes);
-
-        if (!mounted) return;
-        const snackBar = SnackBar(content: Text('QR code saved to gallery'));
-        ScaffoldMessenger.of(context).showSnackBar(snackBar);
-        print('Directory path: $externalDir');
-        print('Directory path: $directory');
-      } else {
-        // Handle the case where external storage directory is not available
-        const snackBar = SnackBar(content: Text('External storage not available'));
-        ScaffoldMessenger.of(context).showSnackBar(snackBar);
-      }
-    } catch (e) {
-      if (!mounted) return;
-      const snackBar = SnackBar(content: Text('Something went wrong!!!'));
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    }
-  }*/
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -172,19 +120,7 @@ class _SuccessBookingPageState extends State<SuccessBookingPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Expanded(
-              flex:5,
-              child: Lottie.network("https://lottie.host/f21e84ce-0595-4141-ade4-1ea2593adb5d/Ewjyb6fP00.json",
-                animate: true,),),
-            Container(
-              width: double.infinity,
-              alignment: Alignment.center,
-              child: const Text('Successfully Booked',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
-            ),
-            const Spacer(),
-            // QR Code section with added functionality to save
-            /** RepaintBoundary(
+            RepaintBoundary(
               key: _qrKey,
               child: QrImageView(
                 data: qrData,
@@ -192,22 +128,13 @@ class _SuccessBookingPageState extends State<SuccessBookingPage> {
                 size: 200.0,
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 15,
-              ),
-             child: TextButton(
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.black,
-                  backgroundColor: Colors.deepPurple[100],
-                  padding: const EdgeInsets.all(10.0),
-                  textStyle: const TextStyle(fontSize: 20),
-                ),
-                onPressed: _captureAndSavePng,
-                child: const Text("Save QR Code"),
-              ),
-            ),**/
+            Container(
+              width: double.infinity,
+              alignment: Alignment.center,
+              child: const Text('Please scan the qr-code',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+            ),
+            SizedBox(height: 24),
             Padding(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
               child: TextButton(
                   style: TextButton.styleFrom(
@@ -216,7 +143,7 @@ class _SuccessBookingPageState extends State<SuccessBookingPage> {
                     padding: const EdgeInsets.all(10.0),
                     textStyle: const TextStyle(fontSize: 20),),
                   onPressed: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=>MenuPage(userId: widget.userId)),);
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=>MenuPage(userId: widget.userId,)),);
                   }, child: const Text("Back to Home Page")),)
           ],
         ),

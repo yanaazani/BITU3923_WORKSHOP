@@ -6,13 +6,11 @@ import 'package:ui/main.dart';
 import 'package:ui/review_doctor.dart';
 import 'package:ui/schedule_appointment_page.dart';
 import 'package:ui/user_profile.dart';
-
 import 'package:http/http.dart' as http;
-
 import 'model/doctor_model.dart';
 
 class MenuPage extends StatefulWidget {
-  final int userId; // Assuming userId is of type int
+  final int userId;
   const MenuPage({Key? key, required this.userId}) : super(key: key);
 
   @override
@@ -113,7 +111,7 @@ class _MyGridViewState extends State<MyGridView> {
   late Future<List<Doctor>> doctors;
 
   Future<List<Doctor>> getDoctors() async {
-    final response = await http.get(Uri.parse('http://172.20.10.3:8080'
+    final response = await http.get(Uri.parse('http://10.131.75.185:8080'
         '/pkums/doctor/list'));
     if (response.statusCode == 200) {
       // Parse the JSON response into a list of `Doctor` objects.
@@ -203,6 +201,7 @@ class _MyGridViewState extends State<MyGridView> {
                           iconSize: 45,
                           onPressed: (){
                             Navigator.push(context, MaterialPageRoute(builder: (context)=> ScheduleAppointmentPage(userId: widget.userId,)),);
+
                           },
                           icon: const Icon(Icons.calendar_month)),
                     ],

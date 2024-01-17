@@ -5,6 +5,7 @@ import 'package:ui/model/appointment_model.dart';
 import 'package:ui/success_booking.dart';
 import 'package:http/http.dart' as http;
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:ui/success_booking_appointment.dart';
 
 class BookingPage extends StatefulWidget {
   final int userId;
@@ -148,7 +149,7 @@ class _BookingPageState extends State<BookingPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => SuccessBookingPage(
+            builder: (context) => SuccessBookingAppointmentPage(
               userId: userId,
               appointmentId: appointmentId,
               bookingDate: parsedBookingDate,

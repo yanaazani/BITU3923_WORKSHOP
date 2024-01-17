@@ -7,21 +7,24 @@ import 'success_booking.dart';
 
 class ScheduleAppointmentPage extends StatefulWidget {
   final int userId;
-
   const ScheduleAppointmentPage({Key? key, required this.userId}) : super(key: key);
 
   @override
   State<ScheduleAppointmentPage> createState() => _ScheduleAppointmentPageState();
 }
 
-enum FilterStatus { pending, complete, waiting }
+enum FilterStatus { pending, waiting, complete, cancel }
 
 class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
   late int userId;
   FilterStatus status_bar = FilterStatus.pending;
   List<Appointment> appointments = [];
+  late FilterStatus status = FilterStatus.pending;
+  //late FilterStatus status;
+  List<Widget> tabPages = [];
+  late Future<List<Appointment>> appointmentsFuture;
 
-  Future<void> getAppointmentsByStatusAndUser(String status) async {
+  Future<List<Appointment>> getAppointmentsByStatusAndUser(String status) async {
     try {
       final response = await http.get(
         Uri.parse('http://10.131.75.185:8080/pkums/appointment/getstatus/$status/patient/$userId'),
@@ -30,10 +33,10 @@ class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
         final List<dynamic> jsonResponse = jsonDecode(response.body);
         final List<Appointment> appointments =
         jsonResponse.map((data) => Appointment.fromJson(data)).toList();
-
         setState(() {
           this.appointments = appointments;
         });
+        return appointments;
       } else {
         throw Exception('Failed to fetch appointments');
       }
@@ -71,84 +74,82 @@ class _ScheduleAppointmentPageState extends State<ScheduleAppointmentPage> {
   void initState() {
     super.initState();
     userId = widget.userId;
-    getAppointmentsByStatusAndUser(status_bar.toString().split('.').last);
+    status = status_bar;
+    appointmentsFuture = getAppointmentsByStatusAndUser(status_bar.toString().split('.').last);
+    //getAppointmentsByStatusAndUser(status_bar.toString().split('.').last);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.deepPurple[100],
-        title: Text("Schedule"),
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                filterIconButton(FilterStatus.pending, "Pending"),
-                filterIconButton(FilterStatus.waiting, "Waiting"),
-                filterIconButton(FilterStatus.complete, "Complete"),
-              ],
-            ),
+    return DefaultTabController(
+      length: FilterStatus.values.length,
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.deepPurple[100],
+          title: Text("Schedule"),
+          bottom: TabBar(
+            tabs: FilterStatus.values.map((filter) {
+              return Tab(text: filter.toString().split('.').last);
+            }).toList(),
+            onTap: (index) {
+              setState(() {
+                status_bar = FilterStatus.values[index];
+                getAppointmentsByStatusAndUser(status_bar.toString().split('.').last);
+              });
+            },
           ),
-          Expanded(
-            child: appointments.isNotEmpty && appointments.any((appointment) {
-              DateTime bookingDateTime = DateTime.parse(appointment.bookingDate.split('-').map((part) {
-                return part.padLeft(2, '0'); // Ensure two digits for each part
-              }).join('-'));
-              DateTime currentDate = DateTime.now();
-              return bookingDateTime.isAfter(currentDate) || bookingDateTime.day == currentDate.day;
-            })
-                ? ListView.builder(
-              itemCount: appointments.length,
-              itemBuilder: (context, index) {
-                final appointment = appointments[index];
-                DateTime bookingDateTime = DateTime.parse(appointment.bookingDate.split('-').map((part) {
-                  return part.padLeft(2, '0'); // Ensure two digits for each part
-                }).join('-'));
-                DateTime currentDate = DateTime.now();
-                bool isOnOrAfterCurrentDay = bookingDateTime.isAfter(currentDate) || bookingDateTime.day == currentDate.day;
-
-                if (isOnOrAfterCurrentDay) {
-                  return AppointmentCard(appointment: appointment, userId: userId,
-                      rateAppointment: rateAppointment,);
-                } else {
-                  return SizedBox(); // Return an empty container if not meeting the condition
-                }
-              },
-            )
-                : Center(child: Text('No Appointments')),
-          ),
-        ],
+        ),
+        body: FutureBuilder(
+          future: appointmentsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else {
+              return buildAppointmentList(status);
+            }
+          },
+        ),
       ),
     );
   }
 
-  ElevatedButton filterIconButton(FilterStatus filter, String label) {
-    return ElevatedButton(
-      onPressed: () {
-        setState(() {
-          status_bar = filter;
-          getAppointmentsByStatusAndUser(status_bar.toString().split('.').last);
-        });
+  Widget buildAppointmentList(FilterStatus status) {
+    return appointments.isNotEmpty && appointments.any((appointment) {
+      DateTime bookingDateTime = DateTime.parse(appointment.bookingDate.split('-').map((part) {
+        return part.padLeft(2, '0'); // Ensure two digits for each part
+      }).join('-'));
+      DateTime currentDate = DateTime.now();
+      return bookingDateTime.isAfter(currentDate) || bookingDateTime.day == currentDate.day;
+    }) ? ListView.builder(
+      itemCount: appointments.length,
+      itemBuilder: (context, index) {
+        final appointment = appointments[index];
+        DateTime bookingDateTime = DateTime.parse(appointment.bookingDate.split('-').map((part) {
+          return part.padLeft(2, '0'); // Ensure two digits for each part
+        }).join('-'));
+        DateTime currentDate = DateTime.now();
+        bool isOnOrAfterCurrentDay = bookingDateTime.isAfter(currentDate) || bookingDateTime.day == currentDate.day;
+
+        if (isOnOrAfterCurrentDay) {
+          return AppointmentCard(
+            appointment: appointment,
+            userId: userId,
+            rateAppointment: rateAppointment,
+          );
+        } else {
+          return SizedBox(); // Return an empty container if not meeting the condition
+        }
       },
-      style: ElevatedButton.styleFrom(
-        primary: status_bar == filter ? Colors.deepPurple[50] : Colors.deepPurple[300],
-      ),
-      child: Text(label),
-    );
+    ) : Center(child: Text('No Appointments'));
   }
 }
 
+
 class AppointmentCard extends StatefulWidget {
   late final int userId;
-
   final Appointment appointment;
-
   final Function(int, int) rateAppointment;
   AppointmentCard({Key? key, required this.appointment, required this.userId,
     required this.rateAppointment}) : super(key: key);
@@ -394,3 +395,5 @@ class _AppointmentCardState extends State<AppointmentCard> {
     );
   }
 }
+
+

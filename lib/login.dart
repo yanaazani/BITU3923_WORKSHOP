@@ -51,7 +51,7 @@ class _LoginState extends State<Login> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
 
-  String url = "http://172.20.10.3:8080/pkums/patient/login";
+  String url = "http://10.131.75.185:8080/pkums/patient/login";
   //String url = "http://10.131.78.208:8080/pkums/patient/login";
 
   Patient patient = Patient("", "");
